@@ -10,12 +10,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+import edu.uob.Parser;
 
 /** This class implements the DB server. */
 public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
+    private Parser parser;
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
@@ -26,6 +28,7 @@ public class DBServer {
     * KEEP this signature otherwise we won't be able to mark your submission correctly.
     */
     public DBServer() {
+        parser = new Parser();
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
         try {
             // Create the database storage folder if it doesn't already exist !
@@ -43,7 +46,8 @@ public class DBServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-        return "";
+
+        return parser.parsingResult(command);
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
