@@ -47,6 +47,7 @@ public class DBServer {
     public String handleCommand(String command) {
         // TODO implement your server logic here
 
+        System.out.println(parser.parsingResult(command));
         return parser.parsingResult(command);
     }
 

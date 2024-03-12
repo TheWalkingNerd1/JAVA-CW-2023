@@ -2,6 +2,7 @@ package edu.uob;
 
 import java.io.*;
 import java.nio.file.Paths;
+import edu.uob.Data;
 
 public class Parser {
     private String command;
@@ -14,7 +15,6 @@ public class Parser {
 
     public String parsingResult(String command) {
         StringBuilder contentBuilder = new StringBuilder();
-        System.out.println(storageFolderPath + File.separator + "people.tab");
         try {
             FileReader fileReader = new FileReader(storageFolderPath + File.separator + "people.tab");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -25,7 +25,8 @@ public class Parser {
         } catch (IOException e) {
             System.out.println("Error");
         }
-        return contentBuilder.toString();
+        Data data = new Data(contentBuilder.toString());
+        return data.constructResult();
     }
 
 }
