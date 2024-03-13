@@ -28,7 +28,6 @@ public class DBServer {
     * KEEP this signature otherwise we won't be able to mark your submission correctly.
     */
     public DBServer() {
-        parser = new Parser();
         storageFolderPath = Paths.get("databases").toAbsolutePath().toString();
         try {
             // Create the database storage folder if it doesn't already exist !
@@ -46,8 +45,7 @@ public class DBServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-
-        System.out.println(parser.parsingResult(command));
+        parser = new Parser();
         return parser.parsingResult(command);
     }
 

@@ -1,4 +1,12 @@
+<<<<<<< Updated upstream
 C:\Users\10765\Desktop\Java\JAVA-CW-2023\cw-db\src\main\java\edu\uob\Data.java
 C:\Users\10765\Desktop\Java\JAVA-CW-2023\cw-db\src\main\java\edu\uob\DBClient.java
 C:\Users\10765\Desktop\Java\JAVA-CW-2023\cw-db\src\main\java\edu\uob\Parser.java
 C:\Users\10765\Desktop\Java\JAVA-CW-2023\cw-db\src\main\java\edu\uob\DBServer.java
+=======
+/home/fv23962/animals/JAVA-CW-2023/cw-db/src/main/java/edu/uob/Tokenizer.java
+/home/fv23962/animals/JAVA-CW-2023/cw-db/src/main/java/edu/uob/DBClient.java
+/home/fv23962/animals/JAVA-CW-2023/cw-db/src/main/java/edu/uob/Parser.java
+/home/fv23962/animals/JAVA-CW-2023/cw-db/src/main/java/edu/uob/DBServer.java
+/home/fv23962/animals/JAVA-CW-2023/cw-db/src/main/java/edu/uob/Data.java
+>>>>>>> Stashed changes
