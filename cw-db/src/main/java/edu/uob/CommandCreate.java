@@ -1,36 +1,66 @@
 package edu.uob;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class CommandCreate extends SqlCommand implements DatabaseOperations{
     public CommandCreate(ArrayList<String> tokens) {
         super(tokens);
     }
+    public CommandCreate(ArrayList<String> tokens, String command) {
+        super(tokens, command);
+    }
 
-    public void parsingResult() throws ParsingException {
+    public void parser() throws SqlExceptions.ParsingException {
         switch (tokens.get(currentWord)) {
             case "DATABASE":
                 currentWord++;
+                if (currentWord >= tokens.size())
+                    throw new SqlExceptions.ParsingException("Invalid command");
                 parsingDatabase();
                 return;
             case "TABLE":
                 currentWord++;
-                parsingDatabase();
+                if (currentWord >= tokens.size())
+                    throw new SqlExceptions.ParsingException("Invalid command");
+                parsingTable();
                 return;
             default:
-                throw new ParsingException("Please use table or database for create command!");
+                throw new SqlExceptions.ParsingException("Please use table or database for create command!");
         }
     }
 
-    private void parsingDatabase () throws ParsingException {
-        System.out.println(currentWord);
-        if( tokens.size() < 4)
-            throw new ParsingException("Too short command");
-        if( tokens.size() > 4)
-            throw new ParsingException("Too long command");
-        if( !Objects.equals(tokens.get(currentWord + 1), ";"))
-            throw new ParsingException("Please finish the command with a ;");
+    public String interpreter() throws SqlExceptions.InterpretingException {
+        return switch (tokens.get(1)) {
+            case "DATABASE" -> {
+                createDatabase(tokens);
+                yield "[OK]";
+            }
+            case "TABLE" -> {
+                creteTable(tokens, command);
+                yield "[OK]";
+            }
+            default -> "[Error]";
+        };
+    }
+
+    private void parsingDatabase () throws SqlExceptions.ParsingException {
+        currentWord++;
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals(";"))
+            throw new SqlExceptions.ParsingException("Invalid command");
+    }
+
+    private void parsingTable () throws SqlExceptions.ParsingException {
+        currentWord++;
+        if(currentWord >= tokens.size() || tokens.get(currentWord).equals(";"))
+            throw new SqlExceptions.ParsingException("Create table must contain Attributes");
+        parsingAttributeList(";");
+    }
+
+    private void createDatabase (ArrayList<String> tokens) {
+        System.out.println(tokens.get(2));
+    }
+
+    private void creteTable (ArrayList<String> tokens, String command) {
+
     }
 }

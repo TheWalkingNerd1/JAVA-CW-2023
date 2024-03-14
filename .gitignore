@@ -1,2 +1,4 @@
 cw-db/mvnw
 cw-db/target/*
+cw-db/target/classes/edu/uob/DBServer.class
+cw-db/databases

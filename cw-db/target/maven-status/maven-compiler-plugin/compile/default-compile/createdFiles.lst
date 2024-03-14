@@ -1,12 +1,10 @@
-<<<<<<< Updated upstream
-edu\uob\DBClient.class
-edu\uob\Parser.class
-edu\uob\Data.class
-edu\uob\DBServer.class
-=======
 edu/uob/Tokenizer.class
 edu/uob/DBServer.class
 edu/uob/Data.class
 edu/uob/DBClient.class
+edu/uob/ParsingException.class
+edu/uob/SqlCommand.class
+edu/uob/CommandSelect.class
+edu/uob/DatabaseOperations.class
+edu/uob/CommandCreate.class
 edu/uob/Parser.class
->>>>>>> Stashed changes

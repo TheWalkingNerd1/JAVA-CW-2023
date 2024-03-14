@@ -2,7 +2,6 @@ package edu.uob;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -10,14 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
-import edu.uob.Parser;
 
 /** This class implements the DB server. */
 public class DBServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
-    private Parser parser;
+    private Worker parser;
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
@@ -45,8 +43,12 @@ public class DBServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-        parser = new Parser();
-        return parser.parsingResult(command);
+        Worker worker = new Worker(command);
+        String parsingResult = worker.parsingResult();
+        // Return the result if parser fails
+        if (worker.parsingResult().contains("[ERROR]")) return parsingResult;
+        // Run the interpreter
+        return worker.interpretingResult();
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===

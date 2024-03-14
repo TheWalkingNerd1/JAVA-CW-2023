@@ -1,7 +1,8 @@
 package edu.uob;
 
-import java.util.ArrayList;
-
 public interface DatabaseOperations {
-    void parsingResult () throws ParsingException;
+    void parser () throws SqlExceptions.ParsingException;
+
+    String interpreter() throws SqlExceptions.InterpretingException;
+
 }
