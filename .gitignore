@@ -2,3 +2,8 @@ cw-db/mvnw
 cw-db/target/*
 cw-db/target/classes/edu/uob/DBServer.class
 cw-db/databases
+cw-db/target/classes/edu/uob/DBClient.class
+cw-db/target/classes/edu/uob/DBServer.class
+cw-db/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+cw-db/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+

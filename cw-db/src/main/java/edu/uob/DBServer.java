@@ -12,10 +12,8 @@ import java.nio.file.Files;
 
 /** This class implements the DB server. */
 public class DBServer {
-
     private static final char END_OF_TRANSMISSION = 4;
     private String storageFolderPath;
-    private Worker parser;
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
@@ -43,12 +41,16 @@ public class DBServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
+        //Ignore empty command
+        if (command == null || command.trim().isEmpty()) return ""; 
+        //Create the worker
         Worker worker = new Worker(command);
-        String parsingResult = worker.parsingResult();
-        // Return the result if parser fails
-        if (worker.parsingResult().contains("[ERROR]")) return parsingResult;
+        //Run the parser
+        try { worker.parser(); }
+            catch (SqlExceptions.ParsingException e) { return "[ERROR]" + e.getMessage();}
         // Run the interpreter
-        return worker.interpretingResult();
+        try { return worker.interpreter();}
+            catch (SqlExceptions.InterpretingException e) {return "[ERROR]" + e.getMessage();}
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
