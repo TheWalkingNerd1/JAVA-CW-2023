@@ -1,13 +1,15 @@
-package edu.uob;
+package edu.uob.commands;
+
+import edu.uob.utilities.SqlExceptions;
 
 import java.util.ArrayList;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SqlCommand {
     protected ArrayList<String> tokens;
     protected final String command;
     protected int currentWord;
     protected static String databaseName;
+    protected ArrayList<String> values;
 
     public  SqlCommand(ArrayList<String> tokens) {
         command = ""; //Command is not needed for parser
@@ -18,10 +20,10 @@ public class SqlCommand {
     public  SqlCommand(ArrayList<String> tokens, String command) {
         this.tokens = tokens;
         this.command = command;
-        currentWord = 1;
+        values = new ArrayList<>(); //Value List are needed for interpreter
     }
 
-    //Default implement for aoiding casting the sqlCommand reference 
+    //Default implement for avoiding casting the sqlCommand reference
     public void parser () throws SqlExceptions.ParsingException {}
     public String interpreter() throws SqlExceptions.InterpretingException {return "";}
 
@@ -31,6 +33,7 @@ public class SqlCommand {
             case "SELECT" -> new CommandSelect(tokens);
             case "CREATE" -> new CommandCreate(tokens);
             case "USE" -> new CommandUse(tokens);
+            case "INSERT" -> new CommandInsert(tokens);
             default -> null;
         };
     }
@@ -40,6 +43,7 @@ public class SqlCommand {
             case "SELECT" -> new CommandSelect(tokens, command);
             case "CREATE" -> new CommandCreate(tokens, command);
             case "USE" -> new CommandUse(tokens, command);
+            case "INSERT" -> new CommandInsert(tokens, command);
             default -> null;
         };
     }
@@ -60,12 +64,12 @@ public class SqlCommand {
         return true;
     }
 
-    protected void parsingAttributeList(String ending) throws SqlExceptions.ParsingException {
+    protected void parsingList(String ending, boolean isAttributeList) throws SqlExceptions.ParsingException {
         if (currentWord >= tokens.size())
-            throw new SqlExceptions.ParsingException("Invalid command");
+            throw new SqlExceptions.ParsingException("list is needed");
         //The first token must be an attribute
-        if(!isPlainText())
-            throw new SqlExceptions.ParsingException("This is not a valid attribute");
+        if(!(isAttributeList ? isPlainText() : isValidValue()))
+            throw new SqlExceptions.ParsingException("This is not a valid list");
         //Return condition
         currentWord++;
         if (currentWord >= tokens.size())
@@ -75,16 +79,48 @@ public class SqlCommand {
         while (!tokens.get(currentWord).equals(ending)) {
             //This word must be a comma
             if (!tokens.get(currentWord).equals(",")) 
-                throw new SqlExceptions.ParsingException("Expected a comma between attributes");
+                throw new SqlExceptions.ParsingException("Expected a comma between words");
             //This word must be an attribute
             currentWord++;
             if (currentWord >= tokens.size() || tokens.get(currentWord).equals(ending)) 
                 throw new SqlExceptions.ParsingException("Invalid command");
-            parsingAttributeList(ending);
+            parsingList(ending, isAttributeList);
         }
     }
 
     protected void setDatabaseName (String databaseName) {
-        this.databaseName = databaseName;
+        SqlCommand.databaseName = databaseName;
+    }
+
+    protected boolean isValidValue() throws SqlExceptions.ParsingException {
+        return isStringLiteral() || isBooleanLiteral() || isNumber() || tokens.get(currentWord).equals("NULL");
+    }
+
+    private boolean isStringLiteral() {
+        String token  = tokens.get(currentWord);
+        return token.charAt(0) == '\'' && token.charAt(token.length() - 1) == '\'';
+    }
+
+    private boolean isBooleanLiteral() {
+        return tokens.get(currentWord).equals("TRUE") || tokens.get(currentWord).equals("FALSE");
+    }
+
+    private boolean isNumber() {
+        String token = tokens.get(currentWord);
+
+        if (token.startsWith("+") || token.startsWith("-")) token = token.substring(1);
+        if (token.isEmpty() || token.startsWith(".") || token.endsWith(".")) return false;
+
+        // Check each character to ensure it's either a digit or at most one dot
+        boolean isDot = false;
+        for (int i = 0; i < token.length(); i++) {
+            char c = token.charAt(i);
+            if (c == '.') {
+                if (isDot) return false;
+                isDot = true;
+            } else if (!Character.isDigit(c)) return false;
+        }
+        
+        return true;
     }
 }

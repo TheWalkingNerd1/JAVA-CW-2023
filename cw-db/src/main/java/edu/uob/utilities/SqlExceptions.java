@@ -1,4 +1,4 @@
-package edu.uob;
+package edu.uob.utilities;
 
 public class SqlExceptions {
     public static class ParsingException extends Exception {

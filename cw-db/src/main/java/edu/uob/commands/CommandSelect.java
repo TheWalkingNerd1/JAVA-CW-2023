@@ -1,15 +1,13 @@
-package edu.uob;
+package edu.uob.commands;
+
+import edu.uob.utilities.SqlExceptions;
 
 import java.util.ArrayList;
 
 public class CommandSelect extends SqlCommand implements DatabaseOperations {
     
-    public CommandSelect(ArrayList<String> tokens) {
-        super(tokens);
-    }
-    public CommandSelect(ArrayList<String> tokens, String command) {
-        super(tokens, command);
-    }
+    public CommandSelect(ArrayList<String> tokens) { super(tokens); }
+    public CommandSelect(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser() throws SqlExceptions.ParsingException {
         if (!tokens.contains("FROM")) 
@@ -30,7 +28,7 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
 
     private void parsingWildAttributeList() throws SqlExceptions.ParsingException {
         if(tokens.get(currentWord).equals("*")) return;
-        super.parsingAttributeList("FROM");
+        super.parsingList("FROM",true);
     }
         
 

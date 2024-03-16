@@ -1,5 +1,7 @@
 package edu.uob;
 
+import edu.uob.utilities.SqlExceptions;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
