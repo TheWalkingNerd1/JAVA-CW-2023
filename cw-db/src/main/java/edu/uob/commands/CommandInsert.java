@@ -36,8 +36,7 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
         //Check whether the command is terminated correctly
         currentWord++;
         if (currentWord != tokens.size() - 1 || !tokens.get(currentWord).equals(";"))
-            throw new SqlExceptions.ParsingException("; is expected for the ending of attribute list");    
-        
+            throw new SqlExceptions.ParsingException("; is expected for the ending of attribute list");
     }
 
     public String interpreter() throws SqlExceptions.InterpretingException {
@@ -45,9 +44,7 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         //Check table name
         String tableName = tokens.get(2);
-        FileEditor fileEditor = new FileEditor();
-        if(!fileEditor.isPathExisting(getDatabaseName() + File.separator + tableName.toLowerCase() + ".tab"))
-            throw new SqlExceptions.InterpretingException("This table doesn't exist!");
+        checkTableNameExistence(tableName);
         //Create data structure
         Data data = new Data(getDatabaseName(), tableName);
         //Check whether the number of the values matches the number of the attributes

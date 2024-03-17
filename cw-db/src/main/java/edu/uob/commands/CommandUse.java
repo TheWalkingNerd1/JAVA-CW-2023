@@ -25,10 +25,10 @@ public class CommandUse extends SqlCommand implements DatabaseOperations {
     public String interpreter() throws SqlExceptions.InterpretingException {
         String databaseName = tokens.get(1);
         FileEditor fileEditor = new FileEditor();
-        //If database already exists, throw exception
+        //If database doesn't exist, throw exception
         if (!fileEditor.isPathExisting(databaseName.toLowerCase()))
             throw new SqlExceptions.InterpretingException("Database not existing");
-        setDatabaseName(databaseName);
+        setDatabaseName(databaseName.toLowerCase());
         return "[OK]";
     }
 }

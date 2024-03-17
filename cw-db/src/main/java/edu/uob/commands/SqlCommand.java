@@ -1,7 +1,9 @@
 package edu.uob.commands;
 
+import edu.uob.utilities.FileEditor;
 import edu.uob.utilities.SqlExceptions;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class SqlCommand {
@@ -34,6 +36,7 @@ public class SqlCommand {
             case "CREATE" -> new CommandCreate(tokens);
             case "USE" -> new CommandUse(tokens);
             case "INSERT" -> new CommandInsert(tokens);
+            case "DROP" -> new CommandDrop(tokens);
             default -> null;
         };
     }
@@ -44,12 +47,19 @@ public class SqlCommand {
             case "CREATE" -> new CommandCreate(tokens, command);
             case "USE" -> new CommandUse(tokens, command);
             case "INSERT" -> new CommandInsert(tokens, command);
+            case "DROP" -> new CommandDrop(tokens);
             default -> null;
         };
     }
 
     public String getDatabaseName () {
         return databaseName;
+    }
+
+    protected void checkTableNameExistence(String tableName) throws SqlExceptions.InterpretingException {
+        FileEditor fileEditor = new FileEditor();
+        if(!fileEditor.isPathExisting(getDatabaseName() + File.separator + tableName.toLowerCase() + ".tab"))
+            throw new SqlExceptions.InterpretingException("This table doesn't exist!");
     }
 
     protected boolean isPlainText() throws SqlExceptions.ParsingException {

@@ -99,7 +99,7 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
     private void creteTable () throws SqlExceptions.InterpretingException {
         String tableName = tokens.get(2);
         FileEditor fileEditor = new FileEditor();
-        //When server is restarted, you always need to use a database;
+        //you always need to use a database before creating;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         //Build the table
         String path = databaseName.toLowerCase() + File.separator  + tableName.toLowerCase();
