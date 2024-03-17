@@ -40,13 +40,13 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
     }
 
     public String interpreter() throws SqlExceptions.InterpretingException {
-        //When server is restarted, you always need to use a database;
+        //you always need to use a database before inserting;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         //Check table name
         String tableName = tokens.get(2);
         checkTableNameExistence(tableName);
         //Create data structure
-        Data data = new Data(getDatabaseName(), tableName);
+        Data data = new Data(databaseName, tableName);
         //Check whether the number of the values matches the number of the attributes
         setValues();
         if(values.size() != data.getAttributeNumber() - 1)
@@ -59,7 +59,13 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
     private void setValues() {
         for(int i = 5; i < tokens.size(); i++) {
              if(tokens.get(i).equals(")")) return;
-             if(!tokens.get(i).equals(",")) values.add(tokens.get(i));
+             if(!tokens.get(i).equals(",")) values.add(processValues(tokens.get(i)));
         }
+    }
+
+    private String processValues(String value) {
+        if(value.equalsIgnoreCase("NULL")) return " ";
+        if(isStringLiteral(value)) return value.substring(1, value.length() - 1);
+        return value;
     }
 }

@@ -37,6 +37,7 @@ public class SqlCommand {
             case "USE" -> new CommandUse(tokens);
             case "INSERT" -> new CommandInsert(tokens);
             case "DROP" -> new CommandDrop(tokens);
+            case "ALTER" -> new CommandAlter(tokens);
             default -> null;
         };
     }
@@ -47,18 +48,15 @@ public class SqlCommand {
             case "CREATE" -> new CommandCreate(tokens, command);
             case "USE" -> new CommandUse(tokens, command);
             case "INSERT" -> new CommandInsert(tokens, command);
-            case "DROP" -> new CommandDrop(tokens);
+            case "DROP" -> new CommandDrop(tokens, command);
+            case "ALTER" -> new CommandAlter(tokens, command);
             default -> null;
         };
     }
 
-    public String getDatabaseName () {
-        return databaseName;
-    }
-
     protected void checkTableNameExistence(String tableName) throws SqlExceptions.InterpretingException {
         FileEditor fileEditor = new FileEditor();
-        if(!fileEditor.isPathExisting(getDatabaseName() + File.separator + tableName.toLowerCase() + ".tab"))
+        if(!fileEditor.isPathExisting(databaseName + File.separator + tableName.toLowerCase() + ".tab"))
             throw new SqlExceptions.InterpretingException("This table doesn't exist!");
     }
 
@@ -103,11 +101,10 @@ public class SqlCommand {
     }
 
     protected boolean isValidValue() throws SqlExceptions.ParsingException {
-        return isStringLiteral() || isBooleanLiteral() || isNumber() || tokens.get(currentWord).equals("NULL");
+        return isStringLiteral(tokens.get(currentWord)) || isBooleanLiteral() || isNumber() || tokens.get(currentWord).equals("NULL");
     }
 
-    private boolean isStringLiteral() {
-        String token  = tokens.get(currentWord);
+    protected boolean isStringLiteral(String token) {
         return token.charAt(0) == '\'' && token.charAt(token.length() - 1) == '\'';
     }
 

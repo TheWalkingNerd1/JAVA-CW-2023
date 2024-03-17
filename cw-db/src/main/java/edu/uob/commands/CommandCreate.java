@@ -60,7 +60,7 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
             throw new SqlExceptions.ParsingException("Invalid command");
         //Check the table name
         if (!super.isPlainText())
-            throw new SqlExceptions.ParsingException("Invalid database name");
+            throw new SqlExceptions.ParsingException("Invalid table name");
         //It is either an attribute list starting with ( or an empty attribute list which means the command should end with ;
         currentWord++;
         if (isEmptyAttributeList()) return;
@@ -99,7 +99,7 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
     private void creteTable () throws SqlExceptions.InterpretingException {
         String tableName = tokens.get(2);
         FileEditor fileEditor = new FileEditor();
-        //you always need to use a database before creating;
+        //you always need to use a database before creating table;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         //Build the table
         String path = databaseName.toLowerCase() + File.separator  + tableName.toLowerCase();

@@ -39,11 +39,11 @@ public class CommandDrop extends SqlCommand implements DatabaseOperations {
     }
 
     private void dropTable() throws SqlExceptions.InterpretingException {
-        //you always need to use a database before dropping;
+        //you always need to use a database before dropping a table;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         String tableName = tokens.get(2);
         FileEditor fileEditor = new FileEditor();
-        String path = getDatabaseName() + File.separator + tableName.toLowerCase() + ".tab";
+        String path = databaseName + File.separator + tableName.toLowerCase() + ".tab";
         //You can't drop a table which doesn't exist
         if( !fileEditor.isPathExisting(path) )
             throw new SqlExceptions.InterpretingException("the table doesn't exist!");

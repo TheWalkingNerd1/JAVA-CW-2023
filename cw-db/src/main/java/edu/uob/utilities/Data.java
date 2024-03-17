@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.Arrays;
 
 public class Data {
-    private ArrayList<Map<String, String>> records = new ArrayList<>();
+    private ArrayList<Map<String, String>> records;
     private int id;
     private ArrayList<String> attributes;
     private final String tableName;
@@ -15,6 +15,7 @@ public class Data {
         this.databaseName = databaseName.toLowerCase();
         this.tableName = tableName.toLowerCase();
         id = readID();
+        records = new ArrayList<>();
         createData();
     }
 
@@ -40,6 +41,32 @@ public class Data {
         String result = constructResult();
         fileEditor.writeToFile(databaseName + File.separator + tableName, result);
     }
+
+    public void insertAttribute(String attributeName) throws SqlExceptions.InterpretingException {
+        //You can't insert the existed attributes
+        if(attributes.contains(attributeName))throw new SqlExceptions.InterpretingException("Attribute name exists!");
+
+        attributes.add(attributeName);
+        if (!records.isEmpty()) {
+            for (Map<String, String> record : records) {
+                record.put(attributeName, " ");
+            }
+        }
+        writeResults();
+    }
+
+    public void dropAttribute(String attributeName) throws SqlExceptions.InterpretingException {
+        //You can't delete the existed attributes
+        if(!attributes.contains(attributeName))throw new SqlExceptions.InterpretingException("Attribute name doesn't exist!");
+        if (!records.isEmpty()) {
+            for (Map<String, String> record : records) {
+                record.remove(attributeName);
+            }
+        }
+        attributes.remove(attributeName);
+        writeResults();
+    }
+
     private int readID() throws SqlExceptions.InterpretingException {
         FileEditor fileEditor = new FileEditor();
         return fileEditor.readID(databaseName, tableName);
@@ -79,12 +106,14 @@ public class Data {
         }
         result.append('\n');
 
-        for (Map<String, String> record : records) {
-            for (String attribute : attributes) {
-                result.append(record.get(attribute));
-                result.append('\t');
+        if(!records.isEmpty()) {
+            for (Map<String, String> record : records) {
+                for (String attribute : attributes) {
+                    result.append(record.get(attribute));
+                    result.append('\t');
+                }
+                result.append('\n');
             }
-            result.append('\n');
         }
 
         return result.toString();
