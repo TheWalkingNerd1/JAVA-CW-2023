@@ -1,5 +1,6 @@
 package edu.uob.commands;
 
+import edu.uob.utilities.Data;
 import edu.uob.utilities.SqlExceptions;
 
 import java.util.ArrayList;
@@ -10,26 +11,52 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
     public CommandSelect(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser() throws SqlExceptions.ParsingException {
-        if (!tokens.contains("FROM")) 
-            throw new SqlExceptions.ParsingException("From must be included in select");
-        if (tokens.get(currentWord).equals("FROM")) 
-            throw new SqlExceptions.ParsingException("Select command must contain Attributes");
-        
+        //The first word should be wild attribute list.
+        currentWord++;
         parsingWildAttributeList();
-        
+        //The next word should be a table name;
         currentWord++;
-        if(currentWord == tokens.size())
-            throw new SqlExceptions.ParsingException("Table name is need!");
+        if (currentWord >= tokens.size() || !isPlainText())
+            throw new SqlExceptions.ParsingException("TABLE name is expected");
+        //Check whether the command is terminated correctly
+        currentWord++;
+        if (currentWord != tokens.size() - 1 || !tokens.get(currentWord).equals(";"))
+            throw new SqlExceptions.ParsingException("; is expected for the ending of attribute list");
+    }
 
-        currentWord++;
-        if(!tokens.get(currentWord).equals(";"))
-            throw new SqlExceptions.ParsingException("; is need to finish the command");
+    public String interpreter() throws SqlExceptions.InterpretingException {
+        //you always need to use a database before joining;
+        if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
+        //check table name
+        checkTableNameExistence(tokens.get(tokens.size() - 2));
+        Data data = new Data(databaseName,tokens.get(tokens.size() - 2));
+        //* will print all the results
+        if(tokens.get(1).equals("*")) return "[OK]\n" + data.constructOutput();
+        //Else, construct the result based on the attribute list
+        ArrayList<String> attributeList = constructAttributeList();
+        if (attributeList.isEmpty()) throw new SqlExceptions.InterpretingException("Something is wrong for select command");
+        return "[OK]\n" + data.constructOutput(attributeList);
     }
 
     private void parsingWildAttributeList() throws SqlExceptions.ParsingException {
-        if(tokens.get(currentWord).equals("*")) return;
-        super.parsingList("FROM",true);
+        if (currentWord >= tokens.size()) throw new SqlExceptions.ParsingException("Invalid command");
+        if(tokens.get(currentWord).equals("*")) {
+            currentWord++;
+            if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("FROM"))
+                throw new SqlExceptions.ParsingException("FROM is expected");
+            return;
+        }
+        parsingList("FROM",true);
     }
-        
+
+    private ArrayList<String> constructAttributeList () {
+        ArrayList<String> attributeList = new ArrayList<>();
+        for (int i = 1; !tokens.get(i).equals("FROM"); i++) {
+            if (!tokens.get(i).equals(",")) {
+                attributeList.add(tokens.get(i));
+            }
+        }
+        return attributeList;
+    }
 
 }

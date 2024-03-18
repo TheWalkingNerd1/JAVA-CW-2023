@@ -91,6 +91,56 @@ public class Data {
         return stringBuilder.toString();
     }
 
+    public String constructOutput() {
+        StringBuilder result = new StringBuilder();
+        for (String attribute : attributes) {
+            result.append(String.format("%-10s",attribute));
+        }
+        result.append('\n');
+        if(!records.isEmpty()) {
+            for (Map<String, String> record : records) {
+                for (String attribute : attributes) {
+                    result.append(String.format("%-10s",record.get(attribute)));
+                }
+                result.append('\n');
+            }
+        }
+        return result.toString();
+    }
+
+    public String constructOutput(ArrayList<String> attributeList) throws SqlExceptions.InterpretingException {
+        StringBuilder result = new StringBuilder();
+        //Check whether the attribute exists
+        for (String attributeToAdd : attributeList) {
+            System.out.println(attributeToAdd);
+            if(!attributes.contains(attributeToAdd)) throw new SqlExceptions.InterpretingException("You can't query a non-existed attribute");
+        }
+        //Build the headline
+        for (String attribute : attributeList) {
+            result.append(String.format("%-10s",attribute));
+        }
+        result.append('\n');
+        if(!records.isEmpty()) {
+           result.append(addRecords(attributeList));
+        }
+        return result.toString();
+    }
+
+    private String addRecords(ArrayList<String> attributeList) {
+        StringBuilder result = new StringBuilder();
+        for (Map<String, String> record : records) {
+            for (String attributeToAdd : attributeList) {
+                for (String attribute : attributes) {
+                    if(attributeToAdd.equals(attribute))
+                        result.append(String.format("%-10s", record.get(attribute)));
+
+                }
+            }
+            result.append('\n');
+        }
+        return result.toString();
+    }
+
     private String joinLine( Data dataOne, int indexOne, int indexTwo, String attributeOne, String attributeTwo, int id ) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(String.format("%-10s", id));

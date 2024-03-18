@@ -77,7 +77,7 @@ public class SqlCommand {
     protected void parsingList(String ending, boolean isAttributeList) throws SqlExceptions.ParsingException {
         if (currentWord >= tokens.size())
             throw new SqlExceptions.ParsingException("list is needed");
-        //The first token must be an attribute
+        //The first token must be an attribute or value
         if(!(isAttributeList ? isPlainText() : isValidValue()))
             throw new SqlExceptions.ParsingException("This is not a valid list");
         //Return condition

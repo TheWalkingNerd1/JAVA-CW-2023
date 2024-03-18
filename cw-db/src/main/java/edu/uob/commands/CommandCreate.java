@@ -69,9 +69,6 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
         //Parsing the attribute list if the command does not end;
         currentWord++;
         parsingList(")", true);
-        //Check the ending of the attribute list
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals(")"))
-            throw new SqlExceptions.ParsingException(") is expected for the ending of attribute list");
         //Check whether the command is terminated correctly
         currentWord++;
         if (currentWord != tokens.size() - 1 || !tokens.get(currentWord).equals(";"))
