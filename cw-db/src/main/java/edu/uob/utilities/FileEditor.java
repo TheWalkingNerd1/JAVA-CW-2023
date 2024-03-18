@@ -23,13 +23,11 @@ public class FileEditor {
 
     public boolean isPathExisting (String pathToCheck) {
         Path path = Path.of(storageFolderPath + File.separator + pathToCheck);
-        System.out.println(path);
         return Files.exists(path);
     }
 
     public void createFile (String filePath) throws SqlExceptions.InterpretingException {
         Path path = Path.of(storageFolderPath + File.separator  + filePath + ".tab");
-        System.out.println(path);
         if (Files.exists(path)) throw new SqlExceptions.InterpretingException("Table already exists");
         try {Files.createFile(path);} catch (IOException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
     }
@@ -110,7 +108,6 @@ public class FileEditor {
             for (String line : lines) {
                 List<String> words = Arrays.asList(line.split("\\s+"));
                 if (!words.contains(tableName)) {
-                    System.out.println(line);
                     updatedLines.add(line);
                 }
             }

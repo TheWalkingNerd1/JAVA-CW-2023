@@ -38,6 +38,7 @@ public class SqlCommand {
             case "INSERT" -> new CommandInsert(tokens);
             case "DROP" -> new CommandDrop(tokens);
             case "ALTER" -> new CommandAlter(tokens);
+            case "JOIN" -> new CommandJoin(tokens);
             default -> null;
         };
     }
@@ -50,6 +51,7 @@ public class SqlCommand {
             case "INSERT" -> new CommandInsert(tokens, command);
             case "DROP" -> new CommandDrop(tokens, command);
             case "ALTER" -> new CommandAlter(tokens, command);
+            case "JOIN" -> new CommandJoin(tokens, command);
             default -> null;
         };
     }

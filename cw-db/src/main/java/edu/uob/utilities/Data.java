@@ -23,6 +23,8 @@ public class Data {
         return attributes.size();
     }
 
+    public boolean isAttributeExisting(String attribute) { return attributes.contains(attribute); }
+
     public void insertValues(ArrayList<String> values) throws SqlExceptions.InterpretingException {
         //Robustness check
         if(values.size() != attributes.size() - 1) throw new SqlExceptions.InterpretingException("Something Wrong when trying to insert values");
@@ -43,9 +45,6 @@ public class Data {
     }
 
     public void insertAttribute(String attributeName) throws SqlExceptions.InterpretingException {
-        //You can't insert the existed attributes
-        if(attributes.contains(attributeName))throw new SqlExceptions.InterpretingException("Attribute name exists!");
-
         attributes.add(attributeName);
         if (!records.isEmpty()) {
             for (Map<String, String> record : records) {
@@ -56,8 +55,6 @@ public class Data {
     }
 
     public void dropAttribute(String attributeName) throws SqlExceptions.InterpretingException {
-        //You can't delete the existed attributes
-        if(!attributes.contains(attributeName))throw new SqlExceptions.InterpretingException("Attribute name doesn't exist!");
         if (!records.isEmpty()) {
             for (Map<String, String> record : records) {
                 record.remove(attributeName);
@@ -65,6 +62,48 @@ public class Data {
         }
         attributes.remove(attributeName);
         writeResults();
+    }
+
+    public String joinData(Data dataOne, String attributeOne, String attributeTwo) throws SqlExceptions.InterpretingException {
+        int id = 1;
+        StringBuilder stringBuilder = new StringBuilder();
+        if(dataOne.records.isEmpty() || records.isEmpty()) throw new SqlExceptions.InterpretingException("One of the table is empty");
+        //Build headline
+        stringBuilder.append(String.format("%-10s", "id"));
+        for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
+            if(!dataOne.attributes.get(i).equals(attributeOne))
+                stringBuilder.append(String.format("%-10s", dataOne.tableName + "." + dataOne.attributes.get(i)));
+        }
+        for(int i = 1; i < getAttributeNumber(); i++) {
+            if(!attributes.get(i).equals(attributeTwo))
+                stringBuilder.append(String.format("%-10s",tableName + "." + attributes.get(i)));
+        }
+        stringBuilder.append('\n');
+        //build the table
+        for (int i = 0; i< dataOne.records.size(); i++) {
+            for (int j = 0; j< records.size(); j++) {
+                if(dataOne.records.get(i).get(attributeOne).equals(records.get(j).get(attributeTwo))) {
+                    stringBuilder.append(joinLine(dataOne, i, j, attributeOne, attributeTwo, id));
+                    id++;
+                }
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    private String joinLine( Data dataOne, int indexOne, int indexTwo, String attributeOne, String attributeTwo, int id ) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(String.format("%-10s", id));
+        for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
+            if(!dataOne.attributes.get(i).equals(attributeOne))
+                stringBuilder.append(String.format("%-10s", dataOne.records.get(indexOne).get(dataOne.attributes.get(i))));
+        }
+        for(int i = 1; i < getAttributeNumber(); i++) {
+            if(!attributes.get(i).equals(attributeTwo))
+                stringBuilder.append(String.format("%-10s", records.get(indexTwo).get(attributes.get(i))));
+        }
+        stringBuilder.append('\n');
+        return stringBuilder.toString();
     }
 
     private int readID() throws SqlExceptions.InterpretingException {

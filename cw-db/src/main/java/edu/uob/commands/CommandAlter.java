@@ -51,9 +51,9 @@ public class CommandAlter extends SqlCommand implements DatabaseOperations {
     }
 
     private void addAttribute(String tableName) throws SqlExceptions.InterpretingException{
-        //You can't add id
-        if(tokens.get(4).equalsIgnoreCase("id")) throw new SqlExceptions.InterpretingException("You can't add id");
         Data data = new Data(databaseName, tableName);
+        //You can't add existing id
+        if(data.isAttributeExisting(tokens.get(4))) throw new SqlExceptions.InterpretingException("You can't add existing id");
         data.insertAttribute(tokens.get(4));
     }
 
@@ -61,6 +61,8 @@ public class CommandAlter extends SqlCommand implements DatabaseOperations {
         //you can't drop id
         if(tokens.get(4).equalsIgnoreCase("id")) throw new SqlExceptions.InterpretingException("You can't drop id");
         Data data = new Data(databaseName, tableName);
+        //You can't drop a non-existed id
+        if(!data.isAttributeExisting(tokens.get(4))) throw new SqlExceptions.InterpretingException("You can't drop non-existing id");
         data.dropAttribute(tokens.get(4));
     }
 }
