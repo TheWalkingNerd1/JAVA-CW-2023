@@ -17,6 +17,7 @@ public class SqlCommand {
         command = ""; //Command is not needed for parser
         this.tokens = tokens;
         currentWord = 0;
+
     }
 
     public  SqlCommand(ArrayList<String> tokens, String command) {
@@ -31,7 +32,7 @@ public class SqlCommand {
 
 
     public static SqlCommand parserCommandType (ArrayList<String> tokens) {
-        return switch (tokens.get(0)) {
+        return switch (tokens.get(0).toUpperCase()) {
             case "SELECT" -> new CommandSelect(tokens);
             case "CREATE" -> new CommandCreate(tokens);
             case "USE" -> new CommandUse(tokens);
@@ -44,7 +45,7 @@ public class SqlCommand {
     }
 
     public static SqlCommand interpreterCommandType (ArrayList<String> tokens, String command) {
-        return switch (tokens.get(0)) {
+        return switch (tokens.get(0).toUpperCase()) {
             case "SELECT" -> new CommandSelect(tokens, command);
             case "CREATE" -> new CommandCreate(tokens, command);
             case "USE" -> new CommandUse(tokens, command);
@@ -84,15 +85,15 @@ public class SqlCommand {
         currentWord++;
         if (currentWord >= tokens.size())
             throw new SqlExceptions.ParsingException("Invalid command");
-        if(tokens.get(currentWord).equals(ending))  return;
+        if(tokens.get(currentWord).equalsIgnoreCase(ending))  return;
         //Recursively parsing the command
-        while (!tokens.get(currentWord).equals(ending)) {
+        while (!tokens.get(currentWord).equalsIgnoreCase(ending)) {
             //This word must be a comma
             if (!tokens.get(currentWord).equals(",")) 
                 throw new SqlExceptions.ParsingException("Expected a comma between words");
             //This word must be an attribute
             currentWord++;
-            if (currentWord >= tokens.size() || tokens.get(currentWord).equals(ending)) 
+            if (currentWord >= tokens.size() || tokens.get(currentWord).equalsIgnoreCase(ending))
                 throw new SqlExceptions.ParsingException("Invalid command");
             parsingList(ending, isAttributeList);
         }

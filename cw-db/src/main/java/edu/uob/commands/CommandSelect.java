@@ -42,7 +42,7 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
         if (currentWord >= tokens.size()) throw new SqlExceptions.ParsingException("Invalid command");
         if(tokens.get(currentWord).equals("*")) {
             currentWord++;
-            if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("FROM"))
+            if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("FROM"))
                 throw new SqlExceptions.ParsingException("FROM is expected");
             return;
         }
@@ -51,7 +51,7 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
 
     private ArrayList<String> constructAttributeList () {
         ArrayList<String> attributeList = new ArrayList<>();
-        for (int i = 1; !tokens.get(i).equals("FROM"); i++) {
+        for (int i = 1; !tokens.get(i).equalsIgnoreCase("FROM"); i++) {
             if (!tokens.get(i).equals(",")) {
                 attributeList.add(tokens.get(i));
             }

@@ -15,7 +15,7 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
         currentWord++;
         if (currentWord >= tokens.size())
                     throw new SqlExceptions.ParsingException("Invalid command");
-        switch (tokens.get(currentWord)) {
+        switch (tokens.get(currentWord).toUpperCase()) {
             case "DATABASE":
                 currentWord++;
                 parsingDatabase();
@@ -30,7 +30,7 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
     }
 
     public String interpreter() throws SqlExceptions.InterpretingException {
-        return switch (tokens.get(1)) {
+        return switch (tokens.get(1).toUpperCase()) {
             case "DATABASE" -> {
                 createDatabase();
                 yield "[OK]";

@@ -12,7 +12,7 @@ public class CommandAlter extends SqlCommand implements DatabaseOperations {
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be a TABLE
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("TABLE"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("TABLE"))
             throw new SqlExceptions.ParsingException("Invalid ALTER command");
         //This word must be a plaintext for table name or database name
         currentWord++;
@@ -20,7 +20,7 @@ public class CommandAlter extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("Invalid name");
         //Next word should be either ADD or DROP
         currentWord++;
-        if (currentWord >= tokens.size() || (!tokens.get(currentWord).equals("ADD") && !tokens.get(currentWord).equals("DROP")))
+        if (currentWord >= tokens.size() || (!tokens.get(currentWord).equalsIgnoreCase("ADD") && !tokens.get(currentWord).equalsIgnoreCase("DROP")))
             throw new SqlExceptions.ParsingException("Please use ADD or DROP for altering a table");
         //This word must be a plaintext for attribute;
         currentWord++;
@@ -37,7 +37,7 @@ public class CommandAlter extends SqlCommand implements DatabaseOperations {
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         String tableName = tokens.get(2);
         checkTableNameExistence(tableName);
-        return switch (tokens.get(3)) {
+        return switch (tokens.get(3).toUpperCase()) {
             case "ADD" -> {
                 addAttribute(tableName);
                 yield "[OK]";

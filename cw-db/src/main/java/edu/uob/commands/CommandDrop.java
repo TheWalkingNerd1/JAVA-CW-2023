@@ -13,7 +13,7 @@ public class CommandDrop extends SqlCommand implements DatabaseOperations {
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be neither a DATABASE nor a TABLE
         currentWord++;
-        if (currentWord >= tokens.size() || (!tokens.get(currentWord).equals("DATABASE") && !tokens.get(currentWord).equals("TABLE")))
+        if (currentWord >= tokens.size() || (!tokens.get(currentWord).equalsIgnoreCase("DATABASE") && !tokens.get(currentWord).equalsIgnoreCase("TABLE")))
             throw new SqlExceptions.ParsingException("Invalid drop command");
         //This word must be a plaintext for table name or database name
         currentWord++;
@@ -25,7 +25,7 @@ public class CommandDrop extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("; is expected for the ending of attribute list");
     }
     public String interpreter() throws SqlExceptions.InterpretingException {
-        return switch (tokens.get(1)) {
+        return switch (tokens.get(1).toUpperCase()) {
             case "TABLE" -> {
                 dropTable();
                 yield "[OK]";

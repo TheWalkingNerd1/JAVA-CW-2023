@@ -2,9 +2,12 @@ package edu.uob.utilities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Tokenizer {
     String[] specialCharacters = {"(",")",",",";"};
+    private final Pattern comparePattern = Pattern.compile("<=?|>=?|==|!=");
     ArrayList<String> tokens = new ArrayList<String>();
 
     public Tokenizer(String query){
@@ -17,8 +20,9 @@ public class Tokenizer {
             if (i%2 != 0) tokens.add("'" + fragments[i] + "'");
             // If it's not a string literal, it must be query characters (which need further processing)
             else {
+            String processedFragment = processComparisonOperators(fragments[i]);
+            String[] nextBatchOfTokens = tokenise(processedFragment);
             // Tokenise the fragments into an array of strings
-            String[] nextBatchOfTokens = tokenise(fragments[i]);
             // Then add these to the "result" array list (needs a bit of conversion)
             tokens.addAll(Arrays.asList(nextBatchOfTokens));
             }
@@ -27,6 +31,17 @@ public class Tokenizer {
     
     public ArrayList<String> getTokens() {
         return tokens;
+    }
+
+    String processComparisonOperators(String input) {
+        Matcher matcher = comparePattern.matcher(input);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            // Ensure the matched operator is padded with spaces
+            matcher.appendReplacement(sb, " " + matcher.group() + " ");
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
     String[] tokenise(String input){

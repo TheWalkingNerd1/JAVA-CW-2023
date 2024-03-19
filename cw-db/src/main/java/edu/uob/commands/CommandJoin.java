@@ -16,7 +16,7 @@ public class CommandJoin extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("Invalid table name");
         //Next word is AND
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("AND"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("AND"))
             throw new SqlExceptions.ParsingException("AND is expected");
         //Next word must be another table name
         currentWord++;
@@ -24,7 +24,7 @@ public class CommandJoin extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("Invalid table name");
         //Next word is ON
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("ON"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("ON"))
             throw new SqlExceptions.ParsingException("ON is expected");
         //Next word must be an attribute name
         currentWord++;
@@ -32,7 +32,7 @@ public class CommandJoin extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("Invalid attribute name");
         //Next word is And
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("AND"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("AND"))
             throw new SqlExceptions.ParsingException("Second AND is expected");
         //Next word must be another attribute name
         currentWord++;
@@ -53,9 +53,9 @@ public class CommandJoin extends SqlCommand implements DatabaseOperations {
         //Check the attribute names
         Data dataOne = new Data(databaseName, tokens.get(1));
         Data dataTwo= new Data(databaseName, tokens.get(3));
-        if(!dataOne.isAttributeExisting(tokens.get(5)))
+        if(!dataOne.isExistingCaseInsensitive(tokens.get(5)))
             throw new SqlExceptions.InterpretingException("The first attribute doesn't exist!");
-        if(!dataTwo.isAttributeExisting(tokens.get(7)))
+        if(!dataTwo.isExistingCaseInsensitive(tokens.get(7)))
             throw new SqlExceptions.InterpretingException("The Second attribute doesn't exist!");
         //try join
         return "[OK]\n" + dataTwo.joinData(dataOne, tokens.get(5), tokens.get(7) );

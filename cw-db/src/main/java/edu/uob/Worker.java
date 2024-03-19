@@ -12,6 +12,8 @@ public class Worker {
 
     Worker(String command) {
         this.command = command;
+        Tokenizer tokenizer = new Tokenizer(command);
+        tokens = tokenizer.getTokens();
     }
 
     public String interpreter() throws SqlExceptions.InterpretingException {
@@ -24,8 +26,6 @@ public class Worker {
     }
 
     public void parser() throws SqlExceptions.ParsingException {
-        Tokenizer tokenizer = new Tokenizer(command);
-        tokens = tokenizer.getTokens();
         //Instantiate the command instances based on the first token
         SqlCommand sqlCommand = SqlCommand.parserCommandType(tokens);
         if (sqlCommand == null) 

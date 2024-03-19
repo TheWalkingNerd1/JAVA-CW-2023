@@ -14,7 +14,7 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be INTO
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("INTO"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("INTO"))
             throw new SqlExceptions.ParsingException("INTO is needed for INSERT");
         // Check the table name
         currentWord++;
@@ -22,7 +22,7 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
             throw new SqlExceptions.ParsingException("table name is needed for INSERT command");
         // The next word should be VALUE 
         currentWord++;
-        if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("VALUES"))
+        if (currentWord >= tokens.size() || !tokens.get(currentWord).equalsIgnoreCase("VALUES"))
             throw new SqlExceptions.ParsingException("VALUES is needed after table name");
         // The value list is mandatory and should start with (
         currentWord++;
