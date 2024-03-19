@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 public class Data {
     private ArrayList<Map<String, String>> records;
-    private ArrayList<Map<String, String>> recordsCaseInsensitive;
     private int id;
     private ArrayList<String> attributes;
     private final String tableName;
@@ -17,7 +16,6 @@ public class Data {
         this.tableName = tableName.toLowerCase();
         id = readID();
         records = new ArrayList<>();
-        recordsCaseInsensitive = new ArrayList<>();
         createData();
     }
 
@@ -25,9 +23,7 @@ public class Data {
         return attributes.size();
     }
 
-    public boolean isAttributeExisting(String attribute) { return attributes.contains(attribute); }
-
-    public boolean isExistingCaseInsensitive(String attribute) {
+    public boolean isAttributeExisting(String attribute) {
         for(String attributeToCompare : attributes) {
             if(attributeToCompare.equalsIgnoreCase(attribute)) return true;
         }
@@ -41,7 +37,7 @@ public class Data {
         Map<String, String> record = new HashMap<>();
         record.put(attributes.get(0), String.valueOf(id));
         for (int i = 1; i < attributes.size(); i++) {
-            record.put(attributes.get(i), values.get(i - 1));
+            record.put(attributes.get(i).toLowerCase(), values.get(i - 1));
         }
         records.add(record);
         writeId(id);
@@ -57,7 +53,7 @@ public class Data {
         attributes.add(attributeName);
         if (!records.isEmpty()) {
             for (Map<String, String> record : records) {
-                record.put(attributeName, " ");
+                record.put(attributeName.toLowerCase(), " ");
             }
         }
         writeResults();
@@ -66,17 +62,18 @@ public class Data {
     public void dropAttribute(String attributeName) throws SqlExceptions.InterpretingException {
         if (!records.isEmpty()) {
             for (Map<String, String> record : records) {
-                record.remove(attributeName);
+                record.remove(attributeName.toLowerCase());
             }
         }
-        attributes.remove(attributeName);
+        attributes.removeIf(attributeToRemove -> attributeToRemove.equalsIgnoreCase(attributeName));
+
         writeResults();
     }
 
     public String joinData(Data dataOne, String attributeOne, String attributeTwo) throws SqlExceptions.InterpretingException {
         int id = 1;
         StringBuilder stringBuilder = new StringBuilder();
-        if(dataOne.recordsCaseInsensitive.isEmpty() || recordsCaseInsensitive.isEmpty()) throw new SqlExceptions.InterpretingException("One of the table is empty");
+        if(dataOne.records.isEmpty() || records.isEmpty()) throw new SqlExceptions.InterpretingException("One of the table is empty");
         //Build headline
         stringBuilder.append(String.format("%-10s", "id"));
         for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
@@ -89,9 +86,9 @@ public class Data {
         }
         stringBuilder.append('\n');
         //build the table
-        for (int i = 0; i< dataOne.recordsCaseInsensitive.size(); i++) {
-            for (int j = 0; j< recordsCaseInsensitive.size(); j++) {
-                if(dataOne.recordsCaseInsensitive.get(i).get(attributeOne.toLowerCase()).equals(recordsCaseInsensitive.get(j).get(attributeTwo).toLowerCase())) {
+        for (int i = 0; i< dataOne.records.size(); i++) {
+            for (int j = 0; j< records.size(); j++) {
+                if(dataOne.records.get(i).get(attributeOne.toLowerCase()).equals(records.get(j).get(attributeTwo).toLowerCase())) {
                     stringBuilder.append(joinLine(dataOne, i, j, attributeOne, attributeTwo, id));
                     id++;
                 }
@@ -109,7 +106,7 @@ public class Data {
         if(!records.isEmpty()) {
             for (Map<String, String> record : records) {
                 for (String attribute : attributes) {
-                    result.append(String.format("%-10s",record.get(attribute)));
+                    result.append(String.format("%-10s",record.get(attribute.toLowerCase())));
                 }
                 result.append('\n');
             }
@@ -121,14 +118,14 @@ public class Data {
         StringBuilder result = new StringBuilder();
         //Check whether the attribute exists
         for (String attributeToAdd : attributeList) {
-            if(!isExistingCaseInsensitive(attributeToAdd)) throw new SqlExceptions.InterpretingException("You can't query a non-existed attribute");
+            if(!isAttributeExisting(attributeToAdd)) throw new SqlExceptions.InterpretingException("You can't query a non-existed attribute");
         }
         //Build the headline
         for (String attribute : attributeList) {
             result.append(String.format("%-10s",attribute));
         }
         result.append('\n');
-        if(!recordsCaseInsensitive.isEmpty()) {
+        if(!records.isEmpty()) {
            result.append(addRecords(attributeList));
         }
         return result.toString();
@@ -136,12 +133,11 @@ public class Data {
 
     private String addRecords(ArrayList<String> attributeList) {
         StringBuilder result = new StringBuilder();
-        for (Map<String, String> record : recordsCaseInsensitive) {
+        for (Map<String, String> record : records) {
             for (String attributeToAdd : attributeList) {
                 for (String attribute : attributes) {
                     if(attributeToAdd.equalsIgnoreCase(attribute))
                         result.append(String.format("%-10s", record.get(attribute.toLowerCase())));
-
                 }
             }
             result.append('\n');
@@ -154,11 +150,11 @@ public class Data {
         stringBuilder.append(String.format("%-10s", id));
         for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
             if(!dataOne.attributes.get(i).equalsIgnoreCase(attributeOne))
-                stringBuilder.append(String.format("%-10s", dataOne.recordsCaseInsensitive.get(indexOne).get(dataOne.attributes.get(i).toLowerCase())));
+                stringBuilder.append(String.format("%-10s", dataOne.records.get(indexOne).get(dataOne.attributes.get(i).toLowerCase())));
         }
         for(int i = 1; i < getAttributeNumber(); i++) {
             if(!attributes.get(i).equalsIgnoreCase(attributeTwo))
-                stringBuilder.append(String.format("%-10s", recordsCaseInsensitive.get(indexTwo).get(attributes.get(i).toLowerCase())));
+                stringBuilder.append(String.format("%-10s", records.get(indexTwo).get(attributes.get(i).toLowerCase())));
         }
         stringBuilder.append('\n');
         return stringBuilder.toString();
@@ -177,7 +173,6 @@ public class Data {
         attributes = new ArrayList<>(Arrays.asList(attributesFromTable));
         if(buffer.size() > 1) {
             createMap(buffer);
-            createMapCaseInsensitive(buffer);
         }
     }
 
@@ -186,20 +181,9 @@ public class Data {
             String[] values = buffer.get(i).split("\\t");
             Map<String, String> record = new HashMap<>();
             for (int j = 0; j < attributes.size(); j++) {
-                record.put(attributes.get(j), values[j]);
-            }
-            records.add( record);
-        }
-    }
-
-    private void createMapCaseInsensitive(List<String> buffer) {
-        for (int i = 1; i < buffer.size(); i++) {
-            String[] values = buffer.get(i).split("\\t");
-            Map<String, String> record = new HashMap<>();
-            for (int j = 0; j < attributes.size(); j++) {
                 record.put(attributes.get(j).toLowerCase(), values[j]);
             }
-            recordsCaseInsensitive.add( record);
+            records.add( record);
         }
     }
 
@@ -220,7 +204,7 @@ public class Data {
         if(!records.isEmpty()) {
             for (Map<String, String> record : records) {
                 for (String attribute : attributes) {
-                    result.append(record.get(attribute));
+                    result.append(record.get(attribute.toLowerCase()));
                     result.append('\t');
                 }
                 result.append('\n');

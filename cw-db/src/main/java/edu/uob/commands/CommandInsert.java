@@ -27,7 +27,7 @@ public class CommandInsert extends SqlCommand implements DatabaseOperations {
         // The value list is mandatory and should start with (
         currentWord++;
         if (currentWord >= tokens.size() || !tokens.get(currentWord).equals("("))
-            throw new SqlExceptions.ParsingException("table name is needed for INSERT command");    
+            throw new SqlExceptions.ParsingException("( is needed for start of value list");
         currentWord++;
         parsingList(")", false);
         //Check the ending of the attribute list

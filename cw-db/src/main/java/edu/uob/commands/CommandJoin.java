@@ -53,9 +53,9 @@ public class CommandJoin extends SqlCommand implements DatabaseOperations {
         //Check the attribute names
         Data dataOne = new Data(databaseName, tokens.get(1));
         Data dataTwo= new Data(databaseName, tokens.get(3));
-        if(!dataOne.isExistingCaseInsensitive(tokens.get(5)))
+        if(!dataOne.isAttributeExisting(tokens.get(5)))
             throw new SqlExceptions.InterpretingException("The first attribute doesn't exist!");
-        if(!dataTwo.isExistingCaseInsensitive(tokens.get(7)))
+        if(!dataTwo.isAttributeExisting(tokens.get(7)))
             throw new SqlExceptions.InterpretingException("The Second attribute doesn't exist!");
         //try join
         return "[OK]\n" + dataTwo.joinData(dataOne, tokens.get(5), tokens.get(7) );

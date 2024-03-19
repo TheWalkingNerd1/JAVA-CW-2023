@@ -104,7 +104,7 @@ public class SqlCommand {
     }
 
     protected boolean isValidValue() throws SqlExceptions.ParsingException {
-        return isStringLiteral(tokens.get(currentWord)) || isBooleanLiteral() || isNumber() || tokens.get(currentWord).equals("NULL");
+        return isStringLiteral(tokens.get(currentWord)) || isBooleanLiteral() || isNumber() || tokens.get(currentWord).equalsIgnoreCase("NULL");
     }
 
     protected boolean isStringLiteral(String token) {
@@ -112,7 +112,7 @@ public class SqlCommand {
     }
 
     private boolean isBooleanLiteral() {
-        return tokens.get(currentWord).equals("TRUE") || tokens.get(currentWord).equals("FALSE");
+        return tokens.get(currentWord).equalsIgnoreCase("TRUE") || tokens.get(currentWord).equalsIgnoreCase("FALSE");
     }
 
     private boolean isNumber() {
