@@ -18,7 +18,7 @@ public class Worker {
 
     public String interpreter() throws SqlExceptions.InterpretingException {
         //Instantiate the command instances based on the first token
-        SqlCommand sqlCommand = SqlCommand.interpreterCommandType(tokens, command);
+        SqlCommand sqlCommand = SqlCommand.parserCommandType(tokens);
         if (sqlCommand == null)
             throw new SqlExceptions.InterpretingException("");
         // Run the interpreter

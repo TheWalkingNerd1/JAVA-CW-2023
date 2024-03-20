@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 public class CommandJoin extends SqlCommand implements DatabaseOperations {
     public CommandJoin(ArrayList<String> tokens) { super(tokens); }
-    public CommandJoin(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be a TABLE name

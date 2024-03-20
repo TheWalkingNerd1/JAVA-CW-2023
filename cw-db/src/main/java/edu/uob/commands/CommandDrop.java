@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class CommandDrop extends SqlCommand implements DatabaseOperations {
     public CommandDrop(ArrayList<String> tokens) { super(tokens); }
-    public CommandDrop(ArrayList<String> tokens, String command) { super(tokens, command); }
+
 
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be neither a DATABASE nor a TABLE

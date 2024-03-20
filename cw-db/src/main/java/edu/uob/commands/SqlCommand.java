@@ -8,22 +8,14 @@ import java.util.ArrayList;
 
 public class SqlCommand {
     protected ArrayList<String> tokens;
-    protected final String command;
     protected int currentWord;
     protected static String databaseName;
     protected ArrayList<String> values;
 
     public  SqlCommand(ArrayList<String> tokens) {
-        command = ""; //Command is not needed for parser
         this.tokens = tokens;
         currentWord = 0;
-
-    }
-
-    public  SqlCommand(ArrayList<String> tokens, String command) {
-        this.tokens = tokens;
-        this.command = command;
-        values = new ArrayList<>(); //Value List are needed for interpreter
+        values = new ArrayList<>();
     }
 
     //Default implement for avoiding casting the sqlCommand reference
@@ -40,19 +32,6 @@ public class SqlCommand {
             case "DROP" -> new CommandDrop(tokens);
             case "ALTER" -> new CommandAlter(tokens);
             case "JOIN" -> new CommandJoin(tokens);
-            default -> null;
-        };
-    }
-
-    public static SqlCommand interpreterCommandType (ArrayList<String> tokens, String command) {
-        return switch (tokens.get(0).toUpperCase()) {
-            case "SELECT" -> new CommandSelect(tokens, command);
-            case "CREATE" -> new CommandCreate(tokens, command);
-            case "USE" -> new CommandUse(tokens, command);
-            case "INSERT" -> new CommandInsert(tokens, command);
-            case "DROP" -> new CommandDrop(tokens, command);
-            case "ALTER" -> new CommandAlter(tokens, command);
-            case "JOIN" -> new CommandJoin(tokens, command);
             default -> null;
         };
     }

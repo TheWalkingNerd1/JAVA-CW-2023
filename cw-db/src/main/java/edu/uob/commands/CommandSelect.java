@@ -4,12 +4,12 @@ import edu.uob.utilities.Data;
 import edu.uob.utilities.SqlExceptions;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.PrimitiveIterator;
 
 public class CommandSelect extends SqlCommand implements DatabaseOperations {
     
     public CommandSelect(ArrayList<String> tokens) { super(tokens); }
-    public CommandSelect(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser() throws SqlExceptions.ParsingException {
         //The first word should be wild attribute list.
@@ -38,9 +38,9 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
         //you always need to use a database before joining;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
         //Check whether condition is needed
-//        for(String token: tokens) {
-//            if (token.equalsIgnoreCase("where")) return selectCondition();
-//        }
+        for(String token: tokens) {
+            if (token.equalsIgnoreCase("where")) return selectCondition();
+        }
         //check table name
         checkTableNameExistence(tokens.get(tokens.size() - 2));
         Data data = new Data(databaseName,tokens.get(tokens.size() - 2));
@@ -59,14 +59,103 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
         checkTableNameExistence(tableName);
         Data data = new Data(databaseName,tableName);
         //find the start of the condition
-        int index = findIndex();
-        //First step: select data based on wild attribute list
-        if(tokens.get(1).equals("*")) data.selectData();
-        return selectResult(data, index);
+        currentWord = findIndex();
+        data.selectData();
+        ArrayList<Integer> finalResult = selectResult(data);
+        if(tokens.get(1).equals("*")) return "[OK]\n" + data.constructSelectedOutput(finalResult);
+        ArrayList<String> attributeList = constructAttributeList();
+        for(String attribute : attributeList) {
+            if (!data.isAttributeExisting(attribute)) throw new SqlExceptions.InterpretingException("You can't query non-exist attributes");
+        }
+        return "[OK]\n" + data.constructSelectedOutput(finalResult, attributeList);
     }
 
-    private String selectResult(Data data, int index) throws SqlExceptions.InterpretingException {
-        return "[OK]";
+    private ArrayList<Integer> selectResult(Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> currentResult = new ArrayList<>();
+        //Look the first word, it is neither a ( or a expression
+        if(tokens.get(currentWord).equals("(")) {
+            currentResult = selectBrackets(data);
+        }else {
+            currentResult = selectExpression(data);
+        }
+
+        //look at the next word, if it's a ),return
+        currentWord++;
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return currentResult;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            if(tokens.get(currentWord).equalsIgnoreCase("and")){
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = combineResult(currentResult, tempResult);
+            }else {
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = includeResult(currentResult, tempResult);
+            }
+        }
+        return currentResult;
+    }
+
+    private ArrayList<Integer> selectBrackets(Data data)  throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> currentResult = new ArrayList<>();
+        currentWord++;
+        if(tokens.get(currentWord).equals("(")) {
+             currentResult = selectBrackets (data);
+        } else {
+             currentResult = selectExpression(data);
+        }
+
+        currentWord++;
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return currentResult;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            if(tokens.get(currentWord).equalsIgnoreCase("and")){
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = combineResult(currentResult, tempResult);
+            }else {
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = includeResult(currentResult, tempResult);
+            }
+        }
+        return currentResult;
+    }
+
+    private ArrayList<Integer> selectExpression(Data data) throws SqlExceptions.InterpretingException {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(tokens.get(currentWord).toLowerCase());
+        stringBuilder.append(" ");
+        currentWord++;
+        stringBuilder.append(tokens.get(currentWord));
+        stringBuilder.append(" ");
+        currentWord++;
+        stringBuilder.append(tokens.get(currentWord));
+        System.out.println(stringBuilder.toString());
+        return data.selectDataOnExpression(data, stringBuilder.toString());
+    }
+
+    private ArrayList<Integer> combineResult( ArrayList<Integer> one, ArrayList<Integer> two) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        for (Integer integer : one) {
+            for (Integer value : two) {
+                if (integer == value) {
+                    result.add(integer);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+    private ArrayList<Integer> includeResult(ArrayList<Integer> one, ArrayList<Integer> two) {
+        ArrayList<Integer> result = new ArrayList<>(one);
+        for (int i = 0; i < two.size(); i++) {
+            boolean found = false;
+            for (Integer integer : one) {
+                if (integer == two.get(i)) found = true;
+            }
+            if(found == false) result.add(two.get(i));
+        }
+        return result;
     }
 
     private int findIndex() {
@@ -156,7 +245,7 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
         if (currentWord >= tokens.size() || !isComparator(tokens.get(currentWord)))
             throw new SqlExceptions.ParsingException("Invalid expression");
         currentWord++;
-        if (currentWord >= tokens.size())
+        if (currentWord >= tokens.size() || !isValidValue())
             throw new SqlExceptions.ParsingException("value is need for expression");
     }
     private boolean isBoolOperator(String token) {
@@ -168,7 +257,6 @@ public class CommandSelect extends SqlCommand implements DatabaseOperations {
                 token.equals(">") ||
                 token.equals("<=") ||
                 token.equals(">=") ||
-                token.equals("=") ||
                 token.equals("==") ||
                 token.equals("!=") ||
                 token.equalsIgnoreCase("LIKE");

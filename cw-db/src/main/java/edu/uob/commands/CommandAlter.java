@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 public class CommandAlter extends SqlCommand implements DatabaseOperations {
     public CommandAlter(ArrayList<String> tokens) { super(tokens); }
-    public CommandAlter(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be a TABLE

@@ -7,9 +7,6 @@ import java.util.ArrayList;
 
 public class CommandUse extends SqlCommand implements DatabaseOperations {
     public CommandUse(ArrayList<String> tokens) { super(tokens); }
-    public CommandUse(ArrayList<String> tokens, String command) {
-        super(tokens, command);
-    }
 
     public void parser() throws SqlExceptions.ParsingException {
         //This word must be the database name

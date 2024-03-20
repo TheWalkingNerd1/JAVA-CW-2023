@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 public class CommandCreate extends SqlCommand implements DatabaseOperations{
     public CommandCreate(ArrayList<String> tokens) { super(tokens); }
-    public CommandCreate(ArrayList<String> tokens, String command) { super(tokens, command); }
 
     public void parser() throws SqlExceptions.ParsingException {
         currentWord++;
@@ -98,25 +97,38 @@ public class CommandCreate extends SqlCommand implements DatabaseOperations{
         FileEditor fileEditor = new FileEditor();
         //you always need to use a database before creating table;
         if(databaseName == null) throw new SqlExceptions.InterpretingException ("Please use a database first");
+        //Check Attribute list
+        ArrayList<String> attributeToAdd = checkAttribute();
         //Build the table
         String path = databaseName.toLowerCase() + File.separator  + tableName.toLowerCase();
         fileEditor.createFile(path);
-        String attributeList = constructAttributeList();
+        String attributeList = constructAttributeList(attributeToAdd);
         fileEditor.writeToFile(path, attributeList);
         //!!!!!Manipulate the unique_id.txt for the id tracing
         initiateId(databaseName, tableName);
     }
 
-    private String constructAttributeList () {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("id");
-        if (tokens.size() == 4 ) return stringBuilder.toString(); //Empty attribute list
-        stringBuilder.append("\t");
-        for (int i = 4; i < tokens.size() - 2; i++) {
-            if (!tokens.get(i).equals(",")) {
-                stringBuilder.append(tokens.get(i));
-                if(i != tokens.size() - 3) stringBuilder.append("\t"); //Discard the last tab
+    private ArrayList<String> checkAttribute() throws SqlExceptions.InterpretingException {
+        ArrayList<String> attributeToAdd = new ArrayList<>();
+        attributeToAdd.add("id");
+        if(tokens.size() == 4 ) return attributeToAdd;
+        for (int i  = 4; i < tokens.size() - 2; i++) {
+            if(!tokens.get(i).equals(",")) {
+                for(String string : attributeToAdd) {
+                    if(string.equalsIgnoreCase(tokens.get(i)))
+                        throw new SqlExceptions.InterpretingException("You can't add identical attributes");
+                }
+                attributeToAdd.add(tokens.get(i));
             }
+        }
+        return attributeToAdd;
+    }
+
+    private String constructAttributeList (ArrayList<String> attributeToAdd) throws SqlExceptions.InterpretingException {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String string : attributeToAdd) {
+                stringBuilder.append(string);
+                stringBuilder.append("\t");
         }
         return stringBuilder.toString();
     }

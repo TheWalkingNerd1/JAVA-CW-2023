@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class CommandInsert extends SqlCommand implements DatabaseOperations {
     public CommandInsert(ArrayList<String> tokens) { super(tokens); }
-    public CommandInsert(ArrayList<String> tokens, String command) { super(tokens, command); }
+
 
     public void parser () throws SqlExceptions.ParsingException {
         //The first word should be INTO

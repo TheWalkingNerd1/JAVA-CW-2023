@@ -1,12 +1,16 @@
 package edu.uob.utilities;
 
+import javax.rmi.ssl.SslRMIClientSocketFactory;
 import java.io.File;
+import java.lang.invoke.SwitchPoint;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Arrays;
 
 public class Data {
     private ArrayList<Map<String, String>> records;
-    private ArrayList<Map<String, String>> selectedRecords;
+    public ArrayList<Map<String, String>> selectedRecords;
+    private ArrayList<String> selectAttributes;
     private int id;
     private ArrayList<String> attributes;
     private final String tableName;
@@ -78,12 +82,16 @@ public class Data {
         //Build headline
         stringBuilder.append(String.format("%-10s", "id"));
         for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
-            if(!dataOne.attributes.get(i).equalsIgnoreCase(attributeOne))
+            if(!dataOne.attributes.get(i).equalsIgnoreCase(attributeOne)) {
                 stringBuilder.append(String.format("%-10s", dataOne.tableName + "." + dataOne.attributes.get(i)));
+                stringBuilder.append(" ");
+            }
         }
         for(int i = 1; i < getAttributeNumber(); i++) {
-            if(!attributes.get(i).equalsIgnoreCase(attributeTwo))
+            if(!attributes.get(i).equalsIgnoreCase(attributeTwo)) {
                 stringBuilder.append(String.format("%-10s",tableName + "." + attributes.get(i)));
+                stringBuilder.append(" ");
+            }
         }
         stringBuilder.append('\n');
         //build the table
@@ -102,12 +110,14 @@ public class Data {
         StringBuilder result = new StringBuilder();
         for (String attribute : attributes) {
             result.append(String.format("%-10s",attribute));
+            result.append(" ");
         }
         result.append('\n');
         if(!records.isEmpty()) {
             for (Map<String, String> record : records) {
                 for (String attribute : attributes) {
                     result.append(String.format("%-10s",record.get(attribute.toLowerCase())));
+                    result.append(" ");
                 }
                 result.append('\n');
             }
@@ -124,6 +134,7 @@ public class Data {
         //Build the headline
         for (String attribute : attributeList) {
             result.append(String.format("%-10s",attribute));
+            result.append(" ");
         }
         result.append('\n');
         if(!records.isEmpty()) {
@@ -133,8 +144,224 @@ public class Data {
     }
 
     public void selectData() {
-        selectedRecords = new ArrayList<Map<String, String>>();
         selectedRecords = records;
+        selectAttributes = attributes;
+    }
+
+    public ArrayList<Integer> selectDataOnExpression(Data data, String command) throws SqlExceptions.InterpretingException {
+        String[] tokens = command.split(" ");
+        //Robustness check
+        if(tokens.length != 3 ) throw new SqlExceptions.InterpretingException("Something is wrong for expression!");
+        //Check attribute to compare
+        String attribute =  tokens[0];
+        if(!isAttributeExisting(attribute)) throw new SqlExceptions.InterpretingException("Unavailable attribute");
+        //Robustness check for comparator
+        return switch (tokens[1].toLowerCase()) {
+            case ">" -> selectGreaterThan(tokens, data);
+            case "<" -> selectLessThan(tokens, data);
+            case ">=" -> selectGreaterEqual(tokens, data);
+            case "<=" -> selectLessLessEqual(tokens, data);
+            case "==" -> selectEqual(tokens, data);
+            case "!=" -> selectNotEqual(tokens, data);
+            case "like" -> selectLike(tokens, data);
+            default -> throw new SqlExceptions.InterpretingException("Unknown error");
+        };
+    }
+
+    private ArrayList<Integer> selectGreaterThan(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 > value2) result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    private ArrayList<Integer> selectLessThan(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 < value2) result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+
+    private ArrayList<Integer> selectGreaterEqual(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 >= value2) result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    private ArrayList<Integer> selectLessLessEqual(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 <= value2) result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    private ArrayList<Integer> selectEqual(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 == value2) result.add(i);
+            } else if (data.selectedRecords.get(i).get(tokens[0]).equals(word2)){
+                  result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    private ArrayList<Integer> selectNotEqual(String[] tokens, Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        float value1 = 0;
+        float value2 = 0;
+        //First, try to remove the '' for the string
+        String word2 = processString(tokens[2]);
+        for( int i = 0; i < data.selectedRecords.size(); i++ ) {
+            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+                try {
+                    value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
+                    value2 = Float.parseFloat(word2);
+                } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
+                if(value1 != value2) result.add(i);
+            } else if (!data.selectedRecords.get(i).get(tokens[0]).equals(word2)){
+                result.add(i);
+            }
+        }
+
+        return result;
+    }
+
+    private boolean isNumber(String token) {
+        if (token.startsWith("+") || token.startsWith("-")) token = token.substring(1);
+        if (token.isEmpty() || token.startsWith(".") || token.endsWith(".")) return false;
+
+        // Check each character to ensure it's either a digit or at most one dot
+        boolean isDot = false;
+        for (int i = 0; i < token.length(); i++) {
+            char c = token.charAt(i);
+            if (c == '.') {
+                if (isDot) return false;
+                isDot = true;
+            } else if (!Character.isDigit(c)) return false;
+        }
+
+        return true;
+    }
+    public String constructSelectedOutput(ArrayList<Integer> result) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String string : selectAttributes) {
+            stringBuilder.append(string);
+            stringBuilder.append("\t");
+        }
+        stringBuilder.append("\n");
+        if(result.isEmpty()) return stringBuilder.toString();
+        for(int i = 0; i < selectedRecords.size(); i++ ) {
+            if(result.contains(i)) {
+                for(String attribute : attributes) {
+                    stringBuilder.append(selectedRecords.get(i).get(attribute.toLowerCase()));
+                    stringBuilder.append(" ");
+                }
+                stringBuilder.append("\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    public String constructSelectedOutput(ArrayList<Integer> result, ArrayList<String> attributesListToAdd) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String string : attributesListToAdd) {
+            stringBuilder.append(string);
+            stringBuilder.append("\t");
+        }
+        stringBuilder.append("\n");
+        if(result.isEmpty()) return stringBuilder.toString();
+        for(int i = 0; i < selectedRecords.size(); i++ ) {
+            if(result.contains(i)) {
+                for(String attribute : attributesListToAdd) {
+                    stringBuilder.append(selectedRecords.get(i).get(attribute.toLowerCase()));
+                    stringBuilder.append(" ");
+                }
+                stringBuilder.append("\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    private ArrayList<Integer> selectLike(String[] tokens, Data data) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        if(data.selectedRecords.isEmpty()) return result;
+        //Prepare the data
+        String string = processString(tokens[2]);
+        for(int i = 0; i < data.selectedRecords.size(); i++) {
+            if (data.selectedRecords.get(i).get(tokens[0]).contains(string)) {
+                result.add(i);
+            }
+        }
+        System.out.println(result.size());
+        return result;
+    }
+
+    private String processString(String string) {
+        if(string.charAt(0) == '\'' && string.charAt(string.length() - 1) == '\'') {
+            return string.substring(1, string.length() - 1);
+        }
+        return string;
     }
 
     private String addRecords(ArrayList<String> attributeList) {
@@ -142,8 +369,10 @@ public class Data {
         for (Map<String, String> record : records) {
             for (String attributeToAdd : attributeList) {
                 for (String attribute : attributes) {
-                    if(attributeToAdd.equalsIgnoreCase(attribute))
+                    if(attributeToAdd.equalsIgnoreCase(attribute)) {
                         result.append(String.format("%-10s", record.get(attribute.toLowerCase())));
+                        result.append(" ");
+                    }
                 }
             }
             result.append('\n');
@@ -155,12 +384,16 @@ public class Data {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(String.format("%-10s", id));
         for(int i = 1; i < dataOne.getAttributeNumber(); i++) {
-            if(!dataOne.attributes.get(i).equalsIgnoreCase(attributeOne))
+            if(!dataOne.attributes.get(i).equalsIgnoreCase(attributeOne)) {
                 stringBuilder.append(String.format("%-10s", dataOne.records.get(indexOne).get(dataOne.attributes.get(i).toLowerCase())));
+                stringBuilder.append(" ");
+            }
         }
         for(int i = 1; i < getAttributeNumber(); i++) {
-            if(!attributes.get(i).equalsIgnoreCase(attributeTwo))
+            if(!attributes.get(i).equalsIgnoreCase(attributeTwo)){
                 stringBuilder.append(String.format("%-10s", records.get(indexTwo).get(attributes.get(i).toLowerCase())));
+                stringBuilder.append(" ");
+            }
         }
         stringBuilder.append('\n');
         return stringBuilder.toString();
