@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 public class Data {
     private ArrayList<Map<String, String>> records;
+    private ArrayList<Map<String, String>> selectedRecords;
     private int id;
     private ArrayList<String> attributes;
     private final String tableName;
@@ -129,6 +130,11 @@ public class Data {
            result.append(addRecords(attributeList));
         }
         return result.toString();
+    }
+
+    public void selectData() {
+        selectedRecords = new ArrayList<Map<String, String>>();
+        selectedRecords = records;
     }
 
     private String addRecords(ArrayList<String> attributeList) {
