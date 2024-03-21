@@ -272,14 +272,19 @@ public class Data {
         float value2 = 0;
         //First, try to remove the '' for the string
         String word2 = processString(tokens[2]);
+        if (word2.equalsIgnoreCase("null")) word2 = " ";
         for( int i = 0; i < data.selectedRecords.size(); i++ ) {
-            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+            if(word2.equalsIgnoreCase("True")) {
+                if(data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("True")) result.add(i);
+            }else if(word2.equalsIgnoreCase("FALSE")) {
+                if(data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("FALSE")) result.add(i);
+            } else if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
                 try {
                     value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
                     value2 = Float.parseFloat(word2);
                 } catch (NumberFormatException e) {throw new SqlExceptions.InterpretingException(e.getMessage());}
                 if(value1 == value2) result.add(i);
-            } else if (data.selectedRecords.get(i).get(tokens[0]).equals(word2)){
+            } else if (data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase(word2)){
                   result.add(i);
             }
         }
@@ -293,8 +298,13 @@ public class Data {
         float value2 = 0;
         //First, try to remove the '' for the string
         String word2 = processString(tokens[2]);
+        if (word2.equalsIgnoreCase("null")) word2 = " ";
         for( int i = 0; i < data.selectedRecords.size(); i++ ) {
-            if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
+            if(word2.equalsIgnoreCase("True")) {
+                if(!data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("True")) result.add(i);
+            }else if (word2.equalsIgnoreCase("FALSE")) {
+                if(!data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("FALSE")) result.add(i);
+            }else if(isNumber(data.selectedRecords.get(i).get(tokens[0])) && isNumber(word2)) {
                 try {
                     value1 = Float.parseFloat(data.selectedRecords.get(i).get(tokens[0]));
                     value2 = Float.parseFloat(word2);
@@ -370,9 +380,14 @@ public class Data {
         //Prepare the data
         String string = processString(tokens[2]);
         for(int i = 0; i < data.selectedRecords.size(); i++) {
-            if (data.selectedRecords.get(i).get(tokens[0]).contains(string)) {
-                result.add(i);
-            }
+            System.out.println(data.selectedRecords.get(i).get(tokens[0]));
+            if(string.equalsIgnoreCase("null")) {
+                if ((data.selectedRecords.get(i).get(tokens[0]).equals(" "))) result.add(i);
+            }else if(string.equalsIgnoreCase("True")) {
+                if ((data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("True"))) result.add(i);
+            }else if(string.equalsIgnoreCase("false")) {
+                if ((data.selectedRecords.get(i).get(tokens[0]).equalsIgnoreCase("false"))) result.add(i);
+            }else if (data.selectedRecords.get(i).get(tokens[0]).contains(string)) result.add(i);
         }
         return result;
     }
