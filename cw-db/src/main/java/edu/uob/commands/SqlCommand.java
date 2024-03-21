@@ -1,5 +1,6 @@
 package edu.uob.commands;
 
+import edu.uob.utilities.Data;
 import edu.uob.utilities.FileEditor;
 import edu.uob.utilities.SqlExceptions;
 
@@ -32,6 +33,8 @@ public class SqlCommand {
             case "DROP" -> new CommandDrop(tokens);
             case "ALTER" -> new CommandAlter(tokens);
             case "JOIN" -> new CommandJoin(tokens);
+            case "UPDATE" -> new CommandUpdate(tokens);
+            case "DELETE" -> new CommandDelete(tokens);
             default -> null;
         };
     }
@@ -111,5 +114,169 @@ public class SqlCommand {
         }
         
         return true;
+    }
+
+    protected void parserCondition() throws SqlExceptions.ParsingException {
+        //Look the first word, it is neither a ( or a expression
+        if (currentWord >= tokens.size())
+            throw new SqlExceptions.ParsingException("Invalid Condition");
+        if(tokens.get(currentWord).equals("(")) {
+            parseBrackets();
+        }
+        else {
+            parseExpression();
+        }
+        //look at the next word, if it's a ),return
+        currentWord++;
+        if (currentWord >= tokens.size())
+            throw new SqlExceptions.ParsingException("Invalid Condition");
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            currentWord++;
+            parserCondition();
+        }
+    }
+
+    protected void parseBrackets() throws SqlExceptions.ParsingException {
+        //Check the first world, if it's a (, keep parsing (
+        currentWord++;
+        if (currentWord >= tokens.size())
+            throw new SqlExceptions.ParsingException("Invalid Condition");
+        if(tokens.get(currentWord).equals("(")) {
+            parseBrackets();
+        }
+        else {
+            parseExpression();
+        }
+        //look at the next word, if it's a )return
+        currentWord++;
+        if (currentWord >= tokens.size())
+            throw new SqlExceptions.ParsingException("Invalid Condition");
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            currentWord++;
+            parserCondition();
+        }
+    }
+
+    protected void parseExpression() throws SqlExceptions.ParsingException {
+        if (currentWord >= tokens.size() || !isPlainText())
+            throw new SqlExceptions.ParsingException("Invalid expression");
+        currentWord++;
+        if (currentWord >= tokens.size() || !isComparator(tokens.get(currentWord)))
+            throw new SqlExceptions.ParsingException("Invalid expression");
+        currentWord++;
+        if (currentWord >= tokens.size() || !isValidValue())
+            throw new SqlExceptions.ParsingException("value is need for expression");
+    }
+    protected boolean isBoolOperator(String token) {
+        return token.equalsIgnoreCase("and") || token.equalsIgnoreCase("or");
+    }
+
+    protected boolean isComparator(String token) {
+        return token.equals("<") ||
+                token.equals(">") ||
+                token.equals("<=") ||
+                token.equals(">=") ||
+                token.equals("==") ||
+                token.equals("!=") ||
+                token.equalsIgnoreCase("LIKE");
+    }
+
+    protected ArrayList<Integer> selectResult(Data data) throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> currentResult = new ArrayList<>();
+        //Look the first word, it is neither a ( or a expression
+        if(tokens.get(currentWord).equals("(")) {
+            currentResult = selectBrackets(data);
+        }else {
+            currentResult = selectExpression(data);
+        }
+
+        //look at the next word, if it's a ),return
+        currentWord++;
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return currentResult;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            if(tokens.get(currentWord).equalsIgnoreCase("and")){
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = combineResult(currentResult, tempResult);
+            }else {
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = includeResult(currentResult, tempResult);
+            }
+        }
+        return currentResult;
+    }
+
+    protected ArrayList<Integer> selectBrackets(Data data)  throws SqlExceptions.InterpretingException {
+        ArrayList<Integer> currentResult = new ArrayList<>();
+        currentWord++;
+        if(tokens.get(currentWord).equals("(")) {
+            currentResult = selectBrackets (data);
+        } else {
+            currentResult = selectExpression(data);
+        }
+
+        currentWord++;
+        if (tokens.get(currentWord).equals(";") || tokens.get(currentWord).equals(")")) return currentResult;
+        if (isBoolOperator(tokens.get(currentWord))) {
+            if(tokens.get(currentWord).equalsIgnoreCase("and")){
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = combineResult(currentResult, tempResult);
+            }else {
+                currentWord++;
+                ArrayList<Integer> tempResult = selectResult(data);
+                currentResult = includeResult(currentResult, tempResult);
+            }
+        }
+        return currentResult;
+    }
+
+    protected ArrayList<Integer> selectExpression(Data data) throws SqlExceptions.InterpretingException {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(tokens.get(currentWord).toLowerCase());
+        stringBuilder.append(" ");
+        currentWord++;
+        stringBuilder.append(tokens.get(currentWord));
+        stringBuilder.append(" ");
+        currentWord++;
+        stringBuilder.append(tokens.get(currentWord));
+        System.out.println(stringBuilder.toString());
+        return data.selectDataOnExpression(data, stringBuilder.toString());
+    }
+
+    protected ArrayList<Integer> combineResult( ArrayList<Integer> one, ArrayList<Integer> two) {
+        ArrayList<Integer> result = new ArrayList<Integer>();
+        for (Integer integer : one) {
+            for (Integer value : two) {
+                if (integer == value) {
+                    result.add(integer);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+    protected ArrayList<Integer> includeResult(ArrayList<Integer> one, ArrayList<Integer> two) {
+        ArrayList<Integer> result = new ArrayList<>(one);
+        for (int i = 0; i < two.size(); i++) {
+            boolean found = false;
+            for (Integer integer : one) {
+                if (integer == two.get(i)) found = true;
+            }
+            if(found == false) result.add(two.get(i));
+        }
+        return result;
+    }
+
+    protected int findIndex() {
+        for (int i = 0; i < tokens.size(); i++) {
+            if(tokens.get(i).equalsIgnoreCase("WHERE")){
+                return i + 1;
+            }
+        }
+        return 0;
     }
 }

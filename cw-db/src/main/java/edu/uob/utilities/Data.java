@@ -125,6 +125,14 @@ public class Data {
         return result.toString();
     }
 
+    public void deleteRecord(ArrayList<Integer> recordsToDelte) throws SqlExceptions.InterpretingException{
+        if(recordsToDelte.isEmpty()) return;
+        for(int index : recordsToDelte) {
+            records.remove(index);
+        }
+        writeResults();
+    }
+
     public String constructOutput(ArrayList<String> attributeList) throws SqlExceptions.InterpretingException {
         StringBuilder result = new StringBuilder();
         //Check whether the attribute exists
@@ -146,6 +154,19 @@ public class Data {
     public void selectData() {
         selectedRecords = records;
         selectAttributes = attributes;
+    }
+
+    public void updateValue(Map<String, String> valuePair, ArrayList<Integer> finalResult) throws SqlExceptions.InterpretingException {
+        for (String attributeToAdd : valuePair.keySet()) {
+            //Check the existence first
+            if(!isAttributeExisting(attributeToAdd)) throw new SqlExceptions.InterpretingException("Can't update non-exist values");
+        }
+        for (String attributeToAdd : valuePair.keySet()) {
+            for(int index : finalResult) {
+                records.get(index).put(attributeToAdd, valuePair.get(attributeToAdd));
+            }
+        }
+        writeResults();
     }
 
     public ArrayList<Integer> selectDataOnExpression(Data data, String command) throws SqlExceptions.InterpretingException {
@@ -353,7 +374,6 @@ public class Data {
                 result.add(i);
             }
         }
-        System.out.println(result.size());
         return result;
     }
 

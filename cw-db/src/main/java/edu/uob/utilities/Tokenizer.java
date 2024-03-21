@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class Tokenizer {
     String[] specialCharacters = {"(",")",",",";"};
-    private final Pattern comparePattern = Pattern.compile("<=?|>=?|==|!=");
+    private final Pattern comparePattern = Pattern.compile("<=?|>=?|==?|!=");
     ArrayList<String> tokens = new ArrayList<String>();
 
     public Tokenizer(String query){
