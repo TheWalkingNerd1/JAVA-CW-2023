@@ -127,8 +127,8 @@ public class Data {
 
     public void deleteRecord(ArrayList<Integer> recordsToDelte) throws SqlExceptions.InterpretingException{
         if(recordsToDelte.isEmpty()) return;
-        for(int index : recordsToDelte) {
-            records.remove(index);
+        for (int i = records.size(); i > 0; i--) {
+            if(recordsToDelte.contains(i)) records.remove(i);
         }
         writeResults();
     }
