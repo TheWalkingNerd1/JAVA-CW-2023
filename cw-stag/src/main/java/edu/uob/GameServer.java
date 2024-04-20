@@ -1,14 +1,12 @@
 package edu.uob;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import edu.uob.utilities.EntityGenerator;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public final class GameServer {
 
@@ -29,7 +27,7 @@ public final class GameServer {
     * @param actionsFile The game configuration file containing all game actions to use in your game
     */
     public GameServer(File entitiesFile, File actionsFile) {
-        // TODO implement your server logic here
+        EntityGenerator entityGenerator = new EntityGenerator(entitiesFile);
     }
 
     /**
