@@ -10,3 +10,7 @@ cw-db/target/
 # cw-db specific ignores
 cw-db/databases/
 
+# cw-stag specific ignores
+cw-stag/config
+cw-stag/libs
+
