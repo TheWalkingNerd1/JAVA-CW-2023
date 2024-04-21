@@ -13,4 +13,5 @@ cw-db/databases/
 # cw-stag specific ignores
 cw-stag/config
 cw-stag/libs
+cw-stag/target
 
