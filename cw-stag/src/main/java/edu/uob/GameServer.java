@@ -1,19 +1,23 @@
 package edu.uob;
 
-import edu.uob.utilities.EntityGenerator;
+import edu.uob.entities.ArtefactsEntity;
+import edu.uob.entities.LocationEntity;
+import edu.uob.utilities.*;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class GameServer {
-
     private static final char END_OF_TRANSMISSION = 4;
 
+    public Map<String, GameEntity> entities = new HashMap<>();
+
     public static void main(String[] args) throws IOException {
-        File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
+        File entitiesFile = Paths.get("config" + File.separator + "extended-entities.dot").toAbsolutePath().toFile();
         File actionsFile = Paths.get("config" + File.separator + "basic-actions.xml").toAbsolutePath().toFile();
         GameServer server = new GameServer(entitiesFile, actionsFile);
         server.blockingListenOn(8888);
@@ -28,6 +32,8 @@ public final class GameServer {
     */
     public GameServer(File entitiesFile, File actionsFile) {
         EntityGenerator entityGenerator = new EntityGenerator(entitiesFile);
+        entityGenerator.generateEntities(entities);
+        entityGenerator.generatePath(entities);
     }
 
     /**
