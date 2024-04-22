@@ -9,12 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
-
     public Map<String, GameEntity> entities = new HashMap<>();
+    public HashMap<String, HashSet<GameAction>> actions = new HashMap<String, HashSet<GameAction>>();
 
     public static void main(String[] args) throws IOException {
         File entitiesFile = Paths.get("config" + File.separator + "extended-entities.dot").toAbsolutePath().toFile();
@@ -34,6 +35,13 @@ public final class GameServer {
         EntityGenerator entityGenerator = new EntityGenerator(entitiesFile);
         entityGenerator.generateEntities(entities);
         entityGenerator.generatePath(entities);
+        ActionGenerator actionGenerator = new ActionGenerator(actionsFile);
+        actionGenerator.generateActions(actions);
+        /*for (Map.Entry<String, HashSet<GameAction>> entry : actions.entrySet()) {
+            for(GameAction gameAction : entry.getValue()) {
+                System.out.println(gameAction.getNarration());
+            }
+        }*/
     }
 
     /**
