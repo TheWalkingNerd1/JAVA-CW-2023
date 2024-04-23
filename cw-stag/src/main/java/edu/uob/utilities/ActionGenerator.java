@@ -57,16 +57,16 @@ public class ActionGenerator {
 
     private void constructActionMap(HashMap<String, HashSet<GameAction>> actions, GameAction gameAction) {
         for(String trigger : triggers){
-            if(!actions.containsKey(trigger)) {
+            if(!actions.containsKey(trigger.toLowerCase())) {
                 HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
-                actions.put(trigger, gameActionSet);
+                actions.put(trigger.toLowerCase(), gameActionSet);
             }
-            actions.get(trigger).add(gameAction);
+            actions.get(trigger.toLowerCase()).add(gameAction);
         }
         for(String subject : subjects){
-            if(!actions.containsKey(subject)) {
+            if(!actions.containsKey(subject.toLowerCase())) {
                 HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
-                actions.put(subject, gameActionSet);
+                actions.put(subject.toLowerCase(), gameActionSet);
             }
             actions.get(subject).add(gameAction);
         }
