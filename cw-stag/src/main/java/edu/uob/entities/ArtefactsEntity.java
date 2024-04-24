@@ -10,7 +10,5 @@ public class ArtefactsEntity extends GameEntity {
         this.location = location;
     }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getLocation() { return location; }
 }

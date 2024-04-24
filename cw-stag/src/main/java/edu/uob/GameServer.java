@@ -2,20 +2,23 @@ package edu.uob;
 
 import edu.uob.entities.ArtefactsEntity;
 import edu.uob.entities.LocationEntity;
+import edu.uob.entities.Player;
 import edu.uob.utilities.*;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
-    public Map<String, GameEntity> entities = new HashMap<>();
-    public HashMap<String, HashSet<GameAction>> actions = new HashMap<String, HashSet<GameAction>>();
+    public final  Map<String, GameEntity> entities = new HashMap<>();
+    public final HashMap<String, HashSet<GameAction>> actions = new HashMap<>();
+    public final ArrayList<Player> players = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         File entitiesFile = Paths.get("config" + File.separator + "extended-entities.dot").toAbsolutePath().toFile();
@@ -51,8 +54,11 @@ public final class GameServer {
     * @param command The incoming command to be processed
     */
     public String handleCommand(String command) {
-        Controller controller = new Controller(command, entities, actions);
-        return "";
+        Controller controller = new Controller(command, entities, actions, players);
+        try {
+            return controller.result();
+        } catch (StagExceptions e) {return e.getMessage();}
+
     }
 
     /**

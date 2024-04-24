@@ -42,6 +42,11 @@ public class EntityGenerator {
             entities.put(locationName.toLowerCase(), entity);
             generateSubEntities(graph, entities);
         }
+        //Set first location
+        String firstLocationName = locations.get(0).getNodes(false).get(0).getId().getId();
+        if(entities.get(firstLocationName.toLowerCase()) instanceof LocationEntity locationEntity) locationEntity.setFirstLocation();
+        //Locate entities
+        locateEntities(entities);
     }
 
     public void generatePath(Map<String, GameEntity> entities) {
@@ -57,14 +62,31 @@ public class EntityGenerator {
         }
     }
 
+    private void locateEntities(Map<String, GameEntity> entities) {
+        for(GameEntity gameEntity : entities.values()) {
+            if(gameEntity instanceof ArtefactsEntity artefactsEntity) {
+                if(entities.get(artefactsEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
+                    locationEntity.addArtefact(artefactsEntity);
+            }
+            if(gameEntity instanceof FurnitureEntity furnitureEntity) {
+                if(entities.get(furnitureEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
+                    locationEntity.addFurniture(furnitureEntity);
+            }
+            if(gameEntity instanceof CharactersEntity charactersEntity) {
+                if(entities.get(charactersEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
+                    locationEntity.addCharacter(charactersEntity);
+            }
+        }
+    }
+
     private void generateSubEntities(Graph graph, Map<String, GameEntity> entities) {
         ArrayList<Graph> subGraphs = graph.getSubgraphs();
         String locationName = graph.getNodes(false).get(0).getId().getId();
         for(Graph subGraph : subGraphs) {
             String entityType = subGraph.getId().getId();
             if(entityType.equals("artefacts")) generateArtefacts(subGraph.getNodes(false), entities, locationName);
-            if(entityType.equals("furniture")) generateFurniture(subGraph.getNodes(false), entities);
-            if(entityType.equals("characters")) generateCharacters(subGraph.getNodes(false), entities);
+            if(entityType.equals("furniture")) generateFurniture(subGraph.getNodes(false), entities,locationName);
+            if(entityType.equals("characters")) generateCharacters(subGraph.getNodes(false), entities,locationName);
         }
     }
 
@@ -77,20 +99,20 @@ public class EntityGenerator {
         }
     }
 
-    private void generateFurniture(ArrayList<Node> nodes, Map<String, GameEntity> entities) {
+    private void generateFurniture(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
         for(Node node : nodes) {
             String furnitureName = node.getId().getId();
             String description = node.getAttribute("description");
-            FurnitureEntity entity = new FurnitureEntity(furnitureName, description);
+            FurnitureEntity entity = new FurnitureEntity(furnitureName, description, locationName);
             entities.put(furnitureName.toLowerCase(), entity);
         }
     }
 
-    private void generateCharacters(ArrayList<Node> nodes, Map<String, GameEntity> entities) {
+    private void generateCharacters(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
         for(Node node : nodes) {
             String characterName = node.getId().getId();
             String description = node.getAttribute("description");
-            CharactersEntity entity = new CharactersEntity(characterName, description);
+            CharactersEntity entity = new CharactersEntity(characterName, description, locationName);
             entities.put(characterName.toLowerCase(), entity);
         }
     }

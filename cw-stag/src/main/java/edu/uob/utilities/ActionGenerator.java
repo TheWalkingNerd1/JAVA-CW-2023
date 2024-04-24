@@ -83,27 +83,26 @@ public class ActionGenerator {
         consumed = new ArrayList<>();
         produced = new ArrayList<>();
 
-        Element triggerList = (Element)action.getElementsByTagName("triggers").item(0);
+        Element triggerList = (Element) action.getElementsByTagName("triggers").item(0);
         NodeList keyPhrase = triggerList.getElementsByTagName("keyphrase");
-        for(int i = 0; i < keyPhrase.getLength(); i++) {
-            if(keyPhrase.item(i) instanceof Element keyPhraseNode) triggers.add(keyPhraseNode.getTextContent());
+        for (int i = 0; i < keyPhrase.getLength(); i++) {
+            if (keyPhrase.item(i) instanceof Element keyPhraseNode) triggers.add(keyPhraseNode.getTextContent());
         }
-        Element subjectsList = (Element)action.getElementsByTagName("subjects").item(0);
+        Element subjectsList = (Element) action.getElementsByTagName("subjects").item(0);
         NodeList subjectEntities = subjectsList.getElementsByTagName("entity");
-        for(int i = 0; i < subjectEntities.getLength(); i++) {
-            if(subjectEntities.item(i) instanceof Element subject) subjects.add(subject.getTextContent());
+        for (int i = 0; i < subjectEntities.getLength(); i++) {
+            if (subjectEntities.item(i) instanceof Element subject) subjects.add(subject.getTextContent());
             //System.out.println(subjectEntities.item(i).getTextContent());
         }
-        Element consumedList = (Element)action.getElementsByTagName("consumed").item(0);
+        Element consumedList = (Element) action.getElementsByTagName("consumed").item(0);
         NodeList consumedEntities = consumedList.getElementsByTagName("entity");
-        for(int i = 0; i < consumedEntities.getLength(); i++) {
-            if(consumedEntities.item(i) instanceof Element consumedNode) consumed.add(consumedNode.getTextContent());
-        } 
-        Element producedList = (Element)action.getElementsByTagName("produced").item(0);
+        for (int i = 0; i < consumedEntities.getLength(); i++) {
+            if (consumedEntities.item(i) instanceof Element consumedNode) consumed.add(consumedNode.getTextContent());
+        }
+        Element producedList = (Element) action.getElementsByTagName("produced").item(0);
         NodeList producedEntities = producedList.getElementsByTagName("entity");
-        for(int i = 0; i < producedEntities.getLength(); i++) {
-            if(producedEntities.item(i) instanceof Element producedNode) produced.add(producedNode.getTextContent());
-        } 
+        for (int i = 0; i < producedEntities.getLength(); i++) {
+            if (producedEntities.item(i) instanceof Element producedNode) produced.add(producedNode.getTextContent());
+        }
     }
-  
 }
