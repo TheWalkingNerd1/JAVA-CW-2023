@@ -6,6 +6,7 @@ import edu.uob.utilities.StagExceptions;
 import java.util.*;
 
 public class Controller {
+    private final String[] builtInCommands = {"inventory", "inv", "get", "drop", "goto", "look"};
     private final Map<String, GameEntity> entities;
     private final HashMap<String, HashSet<GameAction>> actions;
     private String command;
@@ -13,6 +14,7 @@ public class Controller {
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
     private final ArrayList<Player> players;
     private Player currentPlayer;
+    private boolean isBuiltInCommand = false;
 
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
@@ -30,36 +32,63 @@ public class Controller {
     }
 
     public String result() throws StagExceptions {
+        //Ignore empty command
+        if (command == null || command.trim().isEmpty()) return ""; 
+        //extract keyWords
         dismantleCommand();
-        GameAction gameAction = fetchAction(keywordsFromCommand, actions);
-        return gameAction.getNarration();
+        checkCommandValidation();
+        /*HashSet<GameAction> gameActionSet = fetchAction(keywordsFromCommand, actions);
+        if(gameActionSet.size() == 1) {
+            List<GameAction> list = new ArrayList<>(gameActionSet);
+            return list.get(0).getNarration();
+        }*/
+        return "";
+        //throw new StagExceptions("Warning! Unexpect state is met");
     }
 
-    private GameAction fetchAction(ArrayList<String> keywordsFromCommand, HashMap<String, HashSet<GameAction>> actions) {
-        List<GameAction> list = new ArrayList<>(actions.get("open"));
-        return list.get(0);
+    void setIsBuiltinCommand() { isBuiltInCommand = true; }
+
+    private void checkCommandValidation() throws StagExceptions {
+        int builtInCommandNum = 0;
+        for(String builtInCommand : builtInCommands) {
+            if(command.contains(builtInCommand)) builtInCommandNum++;     
+        }
+        if(!keywordsFromCommand.isEmpty()) {
+            for(String builtInCommand : builtInCommands) {
+                if(command.contains(builtInCommand)) throw new StagExceptions(
+                    "You are mixing built-in actions with sandard actions");      
+            }  
+        }
+        else setIsBuiltinCommand();    
+        if(builtInCommandNum != 1) throw new StagExceptions("Please do one action for each command");
+    }
+
+    private HashSet<GameAction> fetchAction(ArrayList<String> keywordsFromCommand, HashMap<String, HashSet<GameAction>> actions) {
+        HashSet<GameAction> initalAction = new HashSet<>(actions.get(keywordsFromCommand.get(0).toLowerCase()));
+        for(String keyword : keywordsFromCommand) {
+            initalAction.retainAll(actions.get(keyword.toLowerCase()));
+        }
+        return initalAction;
     }
 
     private void dismantleCommand() {
-        String[] parts = command.split(" ");
-        for(String part : parts) {
-            for(String keyword : keywords) {
-                if(keyword.equalsIgnoreCase(part)) {
-                    keywordsFromCommand.add(part.toLowerCase());
-                    break;
-                }
-            }
+        for(String keyword : keywords) {
+            if(command.contains(keyword)) keywordsFromCommand.add(keyword);
         }
     }
 
     private void setCommand(String command) {
         int colonIndex = command.indexOf(':');
         if (colonIndex != -1)  this.command = command.substring(colonIndex + 1);
+        command = command.toLowerCase();
     }
 
     private void initialPlayerLocation(Map<String, GameEntity> entities, Player currentPlayer) {
         LocationEntity locationEntity = finaFirstLocation(entities);
-        if(locationEntity != null) currentPlayer.setLocation(locationEntity.getName());
+        if(locationEntity != null) {
+            currentPlayer.setLocation(locationEntity.getName());
+            locationEntity.addPlayers(currentPlayer);
+        }
     }
 
     private LocationEntity finaFirstLocation(Map<String, GameEntity> entities) {
@@ -76,7 +105,6 @@ public class Controller {
         String[] parts = command.split(":");
         if(parts.length > 1) name = parts[0];
         if(!checkPlayerExistence(name)) {
-            System.out.println("Enter Here");
             Player player = new Player(name);
             players.add(player);
             currentPlayer = player;
