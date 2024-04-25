@@ -1,5 +1,6 @@
 package edu.uob.entities;
 
+import com.sun.source.tree.ReturnTree;
 import edu.uob.*;
 
 import java.util.ArrayList;
@@ -30,5 +31,12 @@ public class LocationEntity extends GameEntity {
 
     public void addCharacter(CharactersEntity charactersEntity) { characters.add(charactersEntity); }
 
-    public ArrayList<CharactersEntity> getArtefacts() { return characters; }
+    public ArrayList<ArtefactsEntity> getArtefacts() { return artefacts; }
+
+    public ArrayList<CharactersEntity> getCharacters() { return characters; }
+
+    public ArrayList<FurnitureEntity> getFurniture() { return furniture; }
+    public ArrayList<Player> getPlayers() { return players; }
+
+    public ArrayList<String> getConnectTo() { return connectTo; }
 }

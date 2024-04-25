@@ -26,9 +26,9 @@ public class Controller {
         //SetKeyWords
         constructKeywords(actions);
         //Set the current player
-        setCurrentPlayer(command);
+        setCurrentPlayer();
         //deduct the command
-        setCommand(command);
+        setCommand();
     }
 
     public String result() throws StagExceptions {
@@ -37,6 +37,7 @@ public class Controller {
         //extract keyWords
         dismantleCommand();
         checkCommandValidation();
+        if(isBuiltInCommand)  return handleBuiltInCommand();
         /*HashSet<GameAction> gameActionSet = fetchAction(keywordsFromCommand, actions);
         if(gameActionSet.size() == 1) {
             List<GameAction> list = new ArrayList<>(gameActionSet);
@@ -46,29 +47,109 @@ public class Controller {
         //throw new StagExceptions("Warning! Unexpect state is met");
     }
 
-    void setIsBuiltinCommand() { isBuiltInCommand = true; }
+    private String handleBuiltInCommand() throws StagExceptions{
+        if(command.contains("look")) return handleLookCommand();
+        if(command.contains("inv")) return handleInventoryCommand();
+        throw new StagExceptions("Unexpected state when processing built-in commands");
+    }
+
+    private String handleInventoryCommand() {
+        if(currentPlayer.getArtefacts().isEmpty()) return "You are not currently carrying any artefacts!";
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("You are holding the artefacts : ");
+        for(String string : currentPlayer.getArtefacts()) {
+            stringBuilder.append(string).append(" ");
+        }
+        return stringBuilder.toString();
+    }
+
+    private String handleLookCommand() throws StagExceptions {
+        String location = currentPlayer.getLocation().toLowerCase();
+        if(entities.get(location) instanceof LocationEntity locationEntity) return constructLookResult(locationEntity);
+        throw new StagExceptions("Something wrong for look command");
+    }
+
+    private String constructLookResult(LocationEntity locationEntity) throws StagExceptions  {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("You are currently in ").append(locationEntity.getName()).append(" : ").append(locationEntity.getDescription()).append("\n");
+        lookPlaceToGo(stringBuilder, locationEntity);
+        lookArtefacts(stringBuilder, locationEntity);
+        lookCharacters(stringBuilder, locationEntity);
+        lookFurniture(stringBuilder, locationEntity);
+        lookPlayer(stringBuilder, locationEntity);
+        return stringBuilder.toString();
+    }
+
+    private void lookPlaceToGo(StringBuilder stringBuilder, LocationEntity locationEntity) throws StagExceptions {
+        if(!locationEntity.getConnectTo().isEmpty()) {
+            stringBuilder.append("You can goto the following places: ");
+            for(String string : locationEntity.getConnectTo()) {
+                stringBuilder.append(string).append(" ");
+            }
+            stringBuilder.append("\n");
+        }
+    }
+
+    private void lookPlayer(StringBuilder stringBuilder, LocationEntity locationEntity) throws StagExceptions {
+        if(locationEntity.getPlayers().isEmpty()) throw new StagExceptions("There should be at least one player in this room");
+        stringBuilder.append("The room has following players: \n");
+        for(Player player : locationEntity.getPlayers()) {
+            stringBuilder.append(player.getName()).append(" ");
+        }
+        stringBuilder.append("\n");
+    }
+
+    private void lookFurniture(StringBuilder stringBuilder, LocationEntity locationEntity) {
+        if(!locationEntity.getFurniture().isEmpty()) {
+            stringBuilder.append("The room has following furniture: \n");
+            for(FurnitureEntity furnitureEntity : locationEntity.getFurniture()) {
+                stringBuilder.append(furnitureEntity.getName()).append(" : ").append(furnitureEntity.getDescription()).append("\n");
+            }
+            stringBuilder.append("\n");
+        }
+    }
+
+    private void lookCharacters(StringBuilder stringBuilder, LocationEntity locationEntity) {
+        if(!locationEntity.getCharacters().isEmpty()) {
+            stringBuilder.append("The room has following characters: \n");
+            for(CharactersEntity charactersEntity : locationEntity.getCharacters()) {
+                stringBuilder.append(charactersEntity.getName()).append(" : ").append(charactersEntity.getDescription()).append("\n");
+            }
+            stringBuilder.append("\n");
+        }
+    }
+
+    private void lookArtefacts(StringBuilder stringBuilder, LocationEntity locationEntity) {
+        if(!locationEntity.getArtefacts().isEmpty()) {
+            stringBuilder.append("The room has following artefacts: \n");
+            for(ArtefactsEntity artefactsEntity : locationEntity.getArtefacts()) {
+                stringBuilder.append(artefactsEntity.getName()).append(" : ").append(artefactsEntity.getDescription()).append("\n");
+            }
+            stringBuilder.append("\n");
+        }
+    }
+
+    private void setIsBuiltinCommand() { isBuiltInCommand = true; }
 
     private void checkCommandValidation() throws StagExceptions {
+        //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
         for(String builtInCommand : builtInCommands) {
             if(command.contains(builtInCommand)) builtInCommandNum++;     
         }
-        if(!keywordsFromCommand.isEmpty()) {
-            for(String builtInCommand : builtInCommands) {
-                if(command.contains(builtInCommand)) throw new StagExceptions(
-                    "You are mixing built-in actions with sandard actions");      
-            }  
-        }
-        else setIsBuiltinCommand();    
-        if(builtInCommandNum != 1) throw new StagExceptions("Please do one action for each command");
+        if(!keywordsFromCommand.isEmpty() && builtInCommandNum > 0)
+            throw new StagExceptions("You are mixing built-in actions with standard actions");
+        //Only One command should be processed at each time
+        if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
+        if(builtInCommandNum == 1) setIsBuiltinCommand();
     }
 
     private HashSet<GameAction> fetchAction(ArrayList<String> keywordsFromCommand, HashMap<String, HashSet<GameAction>> actions) {
-        HashSet<GameAction> initalAction = new HashSet<>(actions.get(keywordsFromCommand.get(0).toLowerCase()));
+        HashSet<GameAction> initialAction = new HashSet<>(actions.get(keywordsFromCommand.get(0).toLowerCase()));
         for(String keyword : keywordsFromCommand) {
-            initalAction.retainAll(actions.get(keyword.toLowerCase()));
+            initialAction.retainAll(actions.get(keyword.toLowerCase()));
         }
-        return initalAction;
+        return initialAction;
     }
 
     private void dismantleCommand() {
@@ -77,7 +158,7 @@ public class Controller {
         }
     }
 
-    private void setCommand(String command) {
+    private void setCommand() {
         int colonIndex = command.indexOf(':');
         if (colonIndex != -1)  this.command = command.substring(colonIndex + 1);
         command = command.toLowerCase();
@@ -99,7 +180,7 @@ public class Controller {
         return null;
     }
 
-    private void setCurrentPlayer(String command) {
+    private void setCurrentPlayer() {
         //Get the player's name
         String name = null;
         String[] parts = command.split(":");
