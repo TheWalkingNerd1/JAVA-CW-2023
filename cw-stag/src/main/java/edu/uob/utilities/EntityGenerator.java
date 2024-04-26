@@ -66,15 +66,15 @@ public class EntityGenerator {
         for(GameEntity gameEntity : entities.values()) {
             if(gameEntity instanceof ArtefactsEntity artefactsEntity) {
                 if(entities.get(artefactsEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addArtefact(artefactsEntity);
+                    locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
             }
             if(gameEntity instanceof FurnitureEntity furnitureEntity) {
                 if(entities.get(furnitureEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addFurniture(furnitureEntity);
+                    locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
             }
             if(gameEntity instanceof CharactersEntity charactersEntity) {
                 if(entities.get(charactersEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addCharacter(charactersEntity);
+                    locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
             }
         }
     }

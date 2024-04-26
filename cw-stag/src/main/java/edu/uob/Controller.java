@@ -12,20 +12,20 @@ public class Controller {
     private String command;
     private final ArrayList<String> keywords = new ArrayList<>();
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
-    private final ArrayList<String> artefacts = new ArrayList<>();
-    private final ArrayList<Player> players;
+    private final ArrayList<String> artefactNames = new ArrayList<>();
+    private final Map<String, Player> players;
     private Player currentPlayer;
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
-                       HashSet<GameAction>> actions, ArrayList<Player> players) {
+                       HashSet<GameAction>> actions, Map<String, Player> players) {
         this.command = command;
         this.entities = entities;
         this.actions = actions;
         this.players = players;
         //Set artefacts for command check
-        constructArtefacts();
+        constructArtefactNames();
         //SetKeyWords
-        constructKeywords(actions);
+        constructKeywords();
         //Set the current player
         setCurrentPlayer();
         //deduct the command
@@ -48,31 +48,45 @@ public class Controller {
         //throw new StagExceptions("Warning! Unexpect state is met");
     }
 
-    private void constructArtefacts() {
+    private void constructArtefactNames() {
         for(GameEntity gameEntity : entities.values()) {
-            if(gameEntity instanceof ArtefactsEntity artefactsEntity) artefacts.add(artefactsEntity.getName().toLowerCase());
+            if(gameEntity instanceof ArtefactsEntity artefactsEntity) artefactNames.add(artefactsEntity.getName().toLowerCase());
         }
     }
 
-    private String handleBuiltInCommand() throws StagExceptions{
+    private String handleBuiltInCommand() throws StagExceptions {
         if(command.contains("look")) return handleLookCommand();
         if(command.contains("inv")) return handleInventoryCommand();
         if(command.contains("get")) return handleGetCommand();
+        if(command.contains("drop")) return handleDropCommand();
         return null;
+    }
+
+    private String handleDropCommand() throws StagExceptions {
+        String artefact = checkArtefactBuiltinValidation();
+        if(!playerHasArtefact(artefact)) throw new StagExceptions("Player doesn't have this artefact");
+        ArtefactsEntity artefactsEntity = currentPlayer.getArtefacts().get(artefact.toLowerCase());
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) locationEntity.addArtefact(artefact.toLowerCase(), artefactsEntity);
+        currentPlayer.removeArtefact(artefact.toLowerCase());
+        return "You have successfully dropped the " + artefact;
     }
 
     private String handleGetCommand() throws StagExceptions {
         String artefact = checkArtefactBuiltinValidation();
-        if(!hasArtefact(artefact)) throw new StagExceptions("The artefact doesn't in this location");
-
+        if(!locationHasArtefact(artefact)) throw new StagExceptions("This location doesn't contain the artefact");
+        if(entities.get(artefact) instanceof ArtefactsEntity artefactsEntity) currentPlayer.addArtefact(artefact, artefactsEntity);
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) locationEntity.removeArtefact(artefact.toLowerCase());
+        return "You have successfully got the " + artefact;
     }
 
-    private boolean hasArtefact(String artefact) {
-        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
-            for(ArtefactsEntity artefactsEntity : locationEntity.getArtefacts()) {
-                if(artefactsEntity.getName().equalsIgnoreCase(artefact)) return true;
-            }
-        }
+    private boolean playerHasArtefact(String artefact) throws StagExceptions {
+        if(currentPlayer.getArtefacts().containsKey(artefact.toLowerCase())) return true;
+        return false;
+    }
+
+    private boolean locationHasArtefact(String artefact) {
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) 
+            if(locationEntity.getArtefacts().containsKey(artefact.toLowerCase())) return true;
         return false;
     }
 
@@ -81,8 +95,8 @@ public class Controller {
         if(currentPlayer.getArtefacts().isEmpty()) return "You are not currently carrying any artefacts!";
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("You are holding the artefacts : ");
-        for(String string : currentPlayer.getArtefacts()) {
-            stringBuilder.append(string).append(" ");
+        for(ArtefactsEntity artefactsEntity : currentPlayer.getArtefacts().values()) {
+            stringBuilder.append(artefactsEntity.getName()).append(" ");
         }
         return stringBuilder.toString();
     }
@@ -118,7 +132,7 @@ public class Controller {
     private void lookPlayer(StringBuilder stringBuilder, LocationEntity locationEntity) throws StagExceptions {
         if(locationEntity.getPlayers().isEmpty()) throw new StagExceptions("There should be at least one player in this room");
         stringBuilder.append("The room has following players: \n");
-        for(Player player : locationEntity.getPlayers()) {
+        for(Player player : locationEntity.getPlayers().values()) {
             stringBuilder.append(player.getName()).append(" ");
         }
         stringBuilder.append("\n");
@@ -127,7 +141,7 @@ public class Controller {
     private void lookFurniture(StringBuilder stringBuilder, LocationEntity locationEntity) {
         if(!locationEntity.getFurniture().isEmpty()) {
             stringBuilder.append("The room has following furniture: \n");
-            for(FurnitureEntity furnitureEntity : locationEntity.getFurniture()) {
+            for(FurnitureEntity furnitureEntity : locationEntity.getFurniture().values()) {
                 stringBuilder.append(furnitureEntity.getName()).append(" : ").append(furnitureEntity.getDescription()).append("\n");
             }
             stringBuilder.append("\n");
@@ -137,7 +151,7 @@ public class Controller {
     private void lookCharacters(StringBuilder stringBuilder, LocationEntity locationEntity) {
         if(!locationEntity.getCharacters().isEmpty()) {
             stringBuilder.append("The room has following characters: \n");
-            for(CharactersEntity charactersEntity : locationEntity.getCharacters()) {
+            for(CharactersEntity charactersEntity : locationEntity.getCharacters().values()) {
                 stringBuilder.append(charactersEntity.getName()).append(" : ").append(charactersEntity.getDescription()).append("\n");
             }
             stringBuilder.append("\n");
@@ -147,7 +161,7 @@ public class Controller {
     private void lookArtefacts(StringBuilder stringBuilder, LocationEntity locationEntity) {
         if(!locationEntity.getArtefacts().isEmpty()) {
             stringBuilder.append("The room has following artefacts: \n");
-            for(ArtefactsEntity artefactsEntity : locationEntity.getArtefacts()) {
+            for(ArtefactsEntity artefactsEntity : locationEntity.getArtefacts().values()) {
                 stringBuilder.append(artefactsEntity.getName()).append(" : ").append(artefactsEntity.getDescription()).append("\n");
             }
             stringBuilder.append("\n");
@@ -165,13 +179,13 @@ public class Controller {
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
         //Find the artefact number
         int artefactNum = 0;
-        for(String artefactInEntity : artefacts) {
+        for(String artefactInEntity : artefactNames) {
             if(command.contains(artefactInEntity)) {
                 artefactNum++;
                 artefact = artefactInEntity;
             }
         }
-        if(builtInCommandNum != 1) throw new StagExceptions("Please specify one and only one artefact for get and pick command");
+        if(artefactNum != 1) throw new StagExceptions("Please specify one and only one artefact for get and pick command");
         return artefact;
     }
     private void checkSingleBuiltinValidation() throws StagExceptions {
@@ -185,7 +199,7 @@ public class Controller {
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
     }
 
-    private HashSet<GameAction> fetchAction(ArrayList<String> keywordsFromCommand, HashMap<String, HashSet<GameAction>> actions) {
+    private HashSet<GameAction> fetchAction() {
         HashSet<GameAction> initialAction = new HashSet<>(actions.get(keywordsFromCommand.get(0).toLowerCase()));
         for(String keyword : keywordsFromCommand) {
             initialAction.retainAll(actions.get(keyword.toLowerCase()));
@@ -209,7 +223,7 @@ public class Controller {
         LocationEntity locationEntity = finaFirstLocation(entities);
         if(locationEntity != null) {
             currentPlayer.setLocation(locationEntity.getName());
-            locationEntity.addPlayers(currentPlayer);
+            locationEntity.addPlayers(currentPlayer.getName(), currentPlayer);
         }
     }
 
@@ -228,23 +242,21 @@ public class Controller {
         if(parts.length > 1) name = parts[0];
         if(!checkPlayerExistence(name)) {
             Player player = new Player(name);
-            players.add(player);
+            players.put(name, player);
             currentPlayer = player;
             //Set the player to firstLocation
             initialPlayerLocation(entities,currentPlayer);
         }
     }
 
-    private void constructKeywords(HashMap<String, HashSet<GameAction>> actions) {
+    private void constructKeywords() {
         for(Map.Entry<String, HashSet<GameAction>> entry : actions.entrySet()) { keywords.add(entry.getKey().toLowerCase()); }
     }
 
     private boolean checkPlayerExistence(String name) {
-        for(Player player : players) {
-            if(player.getName().equals(name)) {
-                currentPlayer = player;
-                return true;
-            }
+        if(players.containsKey(name)) {
+            currentPlayer = players.get(name);
+            return true;
         }
         return false;
     }

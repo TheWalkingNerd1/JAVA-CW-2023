@@ -1,11 +1,13 @@
 package edu.uob.entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Player {
     final private String name;
     private String location;
-    private final ArrayList<String> artefacts = new ArrayList<>();
+    private final Map<String, ArtefactsEntity> artefacts = new HashMap<>();
 
     public Player(String name) {
         this.name = name;
@@ -17,5 +19,9 @@ public class Player {
 
     public String getLocation() { return location; }
 
-    public ArrayList<String> getArtefacts() { return artefacts; }
+    public Map<String, ArtefactsEntity> getArtefacts() { return artefacts; }
+
+    public void addArtefact(String key, ArtefactsEntity artefactsEntity) { artefacts.put(key, artefactsEntity); }
+
+    public void removeArtefact(String key) { artefacts.remove(key); }
 }

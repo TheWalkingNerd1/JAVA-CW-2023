@@ -18,7 +18,7 @@ public final class GameServer {
     private static final char END_OF_TRANSMISSION = 4;
     public final  Map<String, GameEntity> entities = new HashMap<>();
     public final HashMap<String, HashSet<GameAction>> actions = new HashMap<>();
-    public final ArrayList<Player> players = new ArrayList<>();
+    public final Map<String, Player> players = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
         File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
