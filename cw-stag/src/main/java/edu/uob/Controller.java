@@ -13,6 +13,7 @@ public class Controller {
     private final ArrayList<String> keywords = new ArrayList<>();
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
     private final ArrayList<String> artefactNames = new ArrayList<>();
+    private final ArrayList<String> locationNames = new ArrayList<>();
     private final Map<String, Player> players;
     private Player currentPlayer;
 
@@ -24,6 +25,8 @@ public class Controller {
         this.players = players;
         //Set artefacts for command check
         constructArtefactNames();
+        //Set locations for command check
+        constructLocationNames();
         //SetKeyWords
         constructKeywords();
         //Set the current player
@@ -54,12 +57,34 @@ public class Controller {
         }
     }
 
+    private void constructLocationNames() {
+        for(GameEntity gameEntity : entities.values()) {
+            if(gameEntity instanceof LocationEntity locationEntity) locationNames.add(locationEntity.getName().toLowerCase());
+        }
+    }
+
     private String handleBuiltInCommand() throws StagExceptions {
         if(command.contains("look")) return handleLookCommand();
         if(command.contains("inv")) return handleInventoryCommand();
         if(command.contains("get")) return handleGetCommand();
         if(command.contains("drop")) return handleDropCommand();
+        if(command.contains("goto")) return handleGotoCommand();
         return null;
+    }
+
+    private String handleGotoCommand() throws StagExceptions {
+        String location = checkLocationBuiltinValidation();
+        if(!isPathAvailable(location)) throw new StagExceptions("You have no access to this place");
+        if(entities.get(location) instanceof LocationEntity locationEntity) locationEntity.addPlayers(currentPlayer.getName(), currentPlayer);
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) locationEntity.removePlayer(currentPlayer.getName());
+        currentPlayer.setLocation(location);
+        return "You have moved to " + location;
+    }
+
+    private boolean isPathAvailable(String location) {
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity)
+            return locationEntity.getConnectTo().contains(location.toLowerCase());
+        return false;
     }
 
     private String handleDropCommand() throws StagExceptions {
@@ -168,7 +193,30 @@ public class Controller {
         }
     }
 
+    private String checkLocationBuiltinValidation() throws StagExceptions {
+        if(keywordsFromCommand.size() > 1) throw new StagExceptions("You are mixing built-in actions with standard actions");
+        String location = null;
+        //Find out the numbers of the builtIn command
+        int builtInCommandNum = 0;
+        for(String builtInCommand : builtInCommands) {
+            if (command.contains(builtInCommand)) builtInCommandNum++;
+        }
+        //Only One command should be processed at each time
+        if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
+        //Find the artefact number
+        int locationNum = 0;
+        for(String locationName : locationNames) {
+            if(command.contains(locationName)) {
+                locationNum++;
+                location = locationName;
+            }
+        }
+        if(locationNum != 1) throw new StagExceptions("Please specify one and only one location for goto command");
+        return location;
+    }
+
     private String checkArtefactBuiltinValidation() throws StagExceptions {
+        if(keywordsFromCommand.size() > 1) throw new StagExceptions("You are mixing built-in actions with standard actions");
         String artefact = null;
         //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
@@ -179,10 +227,10 @@ public class Controller {
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
         //Find the artefact number
         int artefactNum = 0;
-        for(String artefactInEntity : artefactNames) {
-            if(command.contains(artefactInEntity)) {
+        for(String artefactName : artefactNames) {
+            if(command.contains(artefactName)) {
                 artefactNum++;
-                artefact = artefactInEntity;
+                artefact = artefactName;
             }
         }
         if(artefactNum != 1) throw new StagExceptions("Please specify one and only one artefact for get and pick command");
