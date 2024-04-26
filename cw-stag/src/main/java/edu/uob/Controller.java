@@ -12,10 +12,9 @@ public class Controller {
     private String command;
     private final ArrayList<String> keywords = new ArrayList<>();
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
+    private final ArrayList<String> artefacts = new ArrayList<>();
     private final ArrayList<Player> players;
     private Player currentPlayer;
-    private boolean isBuiltInCommand = false;
-
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
                        HashSet<GameAction>> actions, ArrayList<Player> players) {
@@ -23,6 +22,8 @@ public class Controller {
         this.entities = entities;
         this.actions = actions;
         this.players = players;
+        //Set artefacts for command check
+        constructArtefacts();
         //SetKeyWords
         constructKeywords(actions);
         //Set the current player
@@ -36,8 +37,8 @@ public class Controller {
         if (command == null || command.trim().isEmpty()) return ""; 
         //extract keyWords
         dismantleCommand();
-        checkCommandValidation();
-        if(isBuiltInCommand)  return handleBuiltInCommand();
+        String builtInCommandResult = handleBuiltInCommand();
+        if(builtInCommandResult != null) return builtInCommandResult;
         /*HashSet<GameAction> gameActionSet = fetchAction(keywordsFromCommand, actions);
         if(gameActionSet.size() == 1) {
             List<GameAction> list = new ArrayList<>(gameActionSet);
@@ -47,13 +48,36 @@ public class Controller {
         //throw new StagExceptions("Warning! Unexpect state is met");
     }
 
+    private void constructArtefacts() {
+        for(GameEntity gameEntity : entities.values()) {
+            if(gameEntity instanceof ArtefactsEntity artefactsEntity) artefacts.add(artefactsEntity.getName().toLowerCase());
+        }
+    }
+
     private String handleBuiltInCommand() throws StagExceptions{
         if(command.contains("look")) return handleLookCommand();
         if(command.contains("inv")) return handleInventoryCommand();
-        throw new StagExceptions("Unexpected state when processing built-in commands");
+        if(command.contains("get")) return handleGetCommand();
+        return null;
     }
 
-    private String handleInventoryCommand() {
+    private String handleGetCommand() throws StagExceptions {
+        String artefact = checkArtefactBuiltinValidation();
+        if(!hasArtefact(artefact)) throw new StagExceptions("The artefact doesn't in this location");
+
+    }
+
+    private boolean hasArtefact(String artefact) {
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
+            for(ArtefactsEntity artefactsEntity : locationEntity.getArtefacts()) {
+                if(artefactsEntity.getName().equalsIgnoreCase(artefact)) return true;
+            }
+        }
+        return false;
+    }
+
+    private String handleInventoryCommand() throws StagExceptions {
+        checkSingleBuiltinValidation();
         if(currentPlayer.getArtefacts().isEmpty()) return "You are not currently carrying any artefacts!";
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("You are holding the artefacts : ");
@@ -64,6 +88,7 @@ public class Controller {
     }
 
     private String handleLookCommand() throws StagExceptions {
+        checkSingleBuiltinValidation();
         String location = currentPlayer.getLocation().toLowerCase();
         if(entities.get(location) instanceof LocationEntity locationEntity) return constructLookResult(locationEntity);
         throw new StagExceptions("Something wrong for look command");
@@ -129,19 +154,35 @@ public class Controller {
         }
     }
 
-    private void setIsBuiltinCommand() { isBuiltInCommand = true; }
-
-    private void checkCommandValidation() throws StagExceptions {
+    private String checkArtefactBuiltinValidation() throws StagExceptions {
+        String artefact = null;
         //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
         for(String builtInCommand : builtInCommands) {
-            if(command.contains(builtInCommand)) builtInCommandNum++;     
+            if (command.contains(builtInCommand)) builtInCommandNum++;
         }
-        if(!keywordsFromCommand.isEmpty() && builtInCommandNum > 0)
-            throw new StagExceptions("You are mixing built-in actions with standard actions");
         //Only One command should be processed at each time
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
-        if(builtInCommandNum == 1) setIsBuiltinCommand();
+        //Find the artefact number
+        int artefactNum = 0;
+        for(String artefactInEntity : artefacts) {
+            if(command.contains(artefactInEntity)) {
+                artefactNum++;
+                artefact = artefactInEntity;
+            }
+        }
+        if(builtInCommandNum != 1) throw new StagExceptions("Please specify one and only one artefact for get and pick command");
+        return artefact;
+    }
+    private void checkSingleBuiltinValidation() throws StagExceptions {
+        if(!keywordsFromCommand.isEmpty()) throw new StagExceptions("You are mixing built-in actions with standard actions");
+        //Find out the numbers of the builtIn command
+        int builtInCommandNum = 0;
+        for(String builtInCommand : builtInCommands) {
+            if (command.contains(builtInCommand)) builtInCommandNum++;
+        }
+        //Only One command should be processed at each time
+        if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
     }
 
     private HashSet<GameAction> fetchAction(ArrayList<String> keywordsFromCommand, HashMap<String, HashSet<GameAction>> actions) {
