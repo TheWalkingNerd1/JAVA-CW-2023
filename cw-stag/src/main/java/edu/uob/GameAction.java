@@ -1,5 +1,6 @@
 package edu.uob;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 public class GameAction {
@@ -31,7 +32,11 @@ public class GameAction {
     }
 
     public String getNarration() {
-        return this.narration;
+        return narration;
     }
+
+    public ArrayList<String> getConsumed() { return consumed; }
+
+    public ArrayList<String> getProduced() { return produced; }
 }
 

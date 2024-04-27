@@ -14,6 +14,8 @@ public class Controller {
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
     private final ArrayList<String> artefactNames = new ArrayList<>();
     private final ArrayList<String> locationNames = new ArrayList<>();
+    private final ArrayList<String> subjects = new ArrayList<>();
+    private final ArrayList<String> triggers = new ArrayList<>();
     private final Map<String, Player> players;
     private Player currentPlayer;
 
@@ -27,6 +29,8 @@ public class Controller {
         constructArtefactNames();
         //Set locations for command check
         constructLocationNames();
+        //Set the keywords for actions
+        constructActionKeywords();
         //SetKeyWords
         constructKeywords();
         //Set the current player
@@ -42,21 +46,61 @@ public class Controller {
         dismantleCommand();
         String builtInCommandResult = handleBuiltInCommand();
         if(builtInCommandResult != null) return builtInCommandResult;
-        /*HashSet<GameAction> gameActionSet = fetchAction(keywordsFromCommand, actions);
-        if(gameActionSet.size() == 1) {
+        checkActionCommand();
+        HashSet<GameAction> gameActionSet = fetchAction();
+        if(gameActionSet.size() > 1) throw new StagExceptions("The action is ambiguous");
+        else if(gameActionSet.isEmpty()) throw new StagExceptions("You provide too many actions");
+        else{
             List<GameAction> list = new ArrayList<>(gameActionSet);
-            return list.get(0).getNarration();
-        }*/
-        return "";
-        //throw new StagExceptions("Warning! Unexpect state is met");
+            GameAction gameAction = list.get(0);
+            checkConsumedSubject(gameAction);
+            return gameAction.getNarration();
+        }
+    }
+
+    private void checkConsumedSubject(GameAction gameAction) throws StagExceptions {
+        for(String string : gameAction.getConsumed()) {
+            if(!checkPlayerInventory(string) && !checkLocationSubjects(string))
+                throw new StagExceptions("There's no enough subjects for the action!");
+        }
+    }
+
+    private boolean checkLocationSubjects(String string) {
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
+            if (locationEntity.getArtefacts().containsKey(string.toLowerCase())) return true;
+            if (locationEntity.getCharacters().containsKey(string.toLowerCase())) return true;
+            return locationEntity.getFurniture().containsKey(string.toLowerCase());
+        }
+        return false;
+    }
+
+    private boolean checkPlayerInventory(String string) {
+        return currentPlayer.getArtefacts().containsKey(string.toLowerCase());
+    }
+
+    private void checkActionCommand() throws StagExceptions {
+        int triggerNum = 0, subjectNum = 0;
+        for(String string : triggers) {
+            if (containsKeywords(string)) triggerNum++;
+        }
+        for(String string : subjects) {
+            if (containsKeywords(string)) subjectNum++;
+        }
+        if(triggerNum < 1 || subjectNum < 1) throw new StagExceptions("Please specify at least one trigger and one subject");
+    }
+
+    private void constructActionKeywords() {
+        for(String string : actions.keySet()) {
+            if(entities.containsKey(string)) subjects.add(string);
+            else triggers.add(string);
+        }
     }
 
     private boolean containsKeywords(String string) {
         if (command.equals(string)) return true;
         if (command.startsWith(string)) return true;
         if (command.endsWith(" " + string)) return true;
-        if (command.contains(" " + string + " ")) return true;
-        return false; 
+        return command.contains(" " + string + " ");
     }
 
     private void constructArtefactNames() {
@@ -113,13 +157,12 @@ public class Controller {
     }
 
     private boolean playerHasArtefact(String artefact) throws StagExceptions {
-        if(currentPlayer.getArtefacts().containsKey(artefact.toLowerCase())) return true;
-        return false;
+        return currentPlayer.getArtefacts().containsKey(artefact.toLowerCase());
     }
 
     private boolean locationHasArtefact(String artefact) {
-        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) 
-            if(locationEntity.getArtefacts().containsKey(artefact.toLowerCase())) return true;
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity)
+            return locationEntity.getArtefacts().containsKey(artefact.toLowerCase());
         return false;
     }
 
