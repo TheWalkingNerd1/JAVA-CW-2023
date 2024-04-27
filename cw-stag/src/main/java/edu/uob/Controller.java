@@ -51,6 +51,14 @@ public class Controller {
         //throw new StagExceptions("Warning! Unexpect state is met");
     }
 
+    private boolean containsKeywords(String string) {
+        if (command.equals(string)) return true;
+        if (command.startsWith(string)) return true;
+        if (command.endsWith(" " + string)) return true;
+        if (command.contains(" " + string + " ")) return true;
+        return false; 
+    }
+
     private void constructArtefactNames() {
         for(GameEntity gameEntity : entities.values()) {
             if(gameEntity instanceof ArtefactsEntity artefactsEntity) artefactNames.add(artefactsEntity.getName().toLowerCase());
@@ -64,11 +72,11 @@ public class Controller {
     }
 
     private String handleBuiltInCommand() throws StagExceptions {
-        if(command.contains("look")) return handleLookCommand();
-        if(command.contains("inv")) return handleInventoryCommand();
-        if(command.contains("get")) return handleGetCommand();
-        if(command.contains("drop")) return handleDropCommand();
-        if(command.contains("goto")) return handleGotoCommand();
+        if(containsKeywords("look")) return handleLookCommand();
+        if(containsKeywords("inv")) return handleInventoryCommand();
+        if(containsKeywords("get")) return handleGetCommand();
+        if(containsKeywords("drop")) return handleDropCommand();
+        if(containsKeywords("goto")) return handleGotoCommand();
         return null;
     }
 
@@ -199,14 +207,14 @@ public class Controller {
         //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
         for(String builtInCommand : builtInCommands) {
-            if (command.contains(builtInCommand)) builtInCommandNum++;
+            if (containsKeywords(builtInCommand)) builtInCommandNum++;
         }
         //Only One command should be processed at each time
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
         //Find the artefact number
         int locationNum = 0;
         for(String locationName : locationNames) {
-            if(command.contains(locationName)) {
+            if(containsKeywords(locationName)) {
                 locationNum++;
                 location = locationName;
             }
@@ -221,14 +229,14 @@ public class Controller {
         //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
         for(String builtInCommand : builtInCommands) {
-            if (command.contains(builtInCommand)) builtInCommandNum++;
+            if (containsKeywords(builtInCommand)) builtInCommandNum++;
         }
         //Only One command should be processed at each time
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
         //Find the artefact number
         int artefactNum = 0;
         for(String artefactName : artefactNames) {
-            if(command.contains(artefactName)) {
+            if(containsKeywords(artefactName)) {
                 artefactNum++;
                 artefact = artefactName;
             }
@@ -241,7 +249,7 @@ public class Controller {
         //Find out the numbers of the builtIn command
         int builtInCommandNum = 0;
         for(String builtInCommand : builtInCommands) {
-            if (command.contains(builtInCommand)) builtInCommandNum++;
+            if (containsKeywords(builtInCommand)) builtInCommandNum++;
         }
         //Only One command should be processed at each time
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
@@ -257,7 +265,7 @@ public class Controller {
 
     private void dismantleCommand() {
         for(String keyword : keywords) {
-            if(command.contains(keyword)) keywordsFromCommand.add(keyword);
+            if(containsKeywords(keyword)) keywordsFromCommand.add(keyword);
         }
     }
 
