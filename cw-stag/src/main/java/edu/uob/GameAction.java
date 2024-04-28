@@ -38,5 +38,7 @@ public class GameAction {
     public ArrayList<String> getConsumed() { return consumed; }
 
     public ArrayList<String> getProduced() { return produced; }
+
+    public ArrayList<String> getSubjects() { return subjects; }
 }
 
