@@ -59,9 +59,49 @@ public class Controller {
             GameAction gameAction = list.get(0);
             checkSubject(gameAction);
             consumeSubjects(gameAction);
-            //produceSubjects(gameAction);
+            produceSubjects(gameAction);
             if(entities.get("storeroom") instanceof LocationEntity locationEntity) {System.out.println(locationEntity.getArtefacts().keySet());}
             return gameAction.getNarration();
+        }
+    }
+
+    private void produceSubjects(GameAction gameAction) {
+        for(String string : gameAction.getConsumed()) {
+            if(entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
+                if(artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
+                    throw new StagExceptions("An artefact to be produed is currently hold by another player");
+                produceArtefact(artefactsEntity);
+            }
+            if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
+                String location = furnitureEntity.getLocation().toLowerCase();
+                if(entities.get(location) instanceof LocationEntity locationEntity)
+                    locationEntity.getArtefacts().remove(furnitureEntity.getName().toLowerCase());
+                if(entities.get("storeroom") instanceof LocationEntity locationEntity)
+                    locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
+                furnitureEntity.setLocation("storeroom");
+            }
+            if(entities.get(string.toLowerCase()) instanceof CharactersEntity charactersEntity) {
+                String location = charactersEntity.getLocation().toLowerCase();
+                if(entities.get(location) instanceof LocationEntity locationEntity)
+                    locationEntity.getArtefacts().remove(charactersEntity.getName().toLowerCase());
+                if(entities.get("storeroom") instanceof LocationEntity locationEntity)
+                    locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
+                charactersEntity.setLocation("storeroom");
+            }
+        }
+    }
+
+    private void produceArtefact(ArtefactsEntity artefactsEntity) {
+        //if(artefactsEntity.getLocation().isEmpty()) currentPlayer.removeArtefact(artefactsEntity.getName().toLowerCase());
+        //else {
+            String location = artefactsEntity.getLocation().toLowerCase();
+            if(entities.get(location) instanceof LocationEntity locationEntity)
+                locationEntity.removeArtefact(artefactsEntity.getName().toLowerCase());
+        //}
+        //Add the item to the curreent Room 
+        if(entities.get(currentPlayer.getLocation.toLowerCase) instanceof LocationEntity locationEntity) {
+            locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
+            artefactsEntity.setLocation(currentPlayer.getLocation.toLowerCase);
         }
     }
 
@@ -103,7 +143,6 @@ public class Controller {
             locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
             artefactsEntity.setLocation("storeroom");
         }
-
     }
 
     private void checkSubject(GameAction gameAction) throws StagExceptions {
