@@ -60,6 +60,7 @@ public class Controller {
             checkSubject(gameAction);
             consumeSubjects(gameAction);
             //produceSubjects(gameAction);
+            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {System.out.println(locationEntity.getArtefacts().keySet());}
             return gameAction.getNarration();
         }
     }
@@ -91,18 +92,17 @@ public class Controller {
     }
 
     private void consumeArtefact(ArtefactsEntity artefactsEntity) {
-        if(artefactsEntity.getDescription().isEmpty()) currentPlayer.getArtefacts().remove(artefactsEntity.getName().toLowerCase());
+        if(artefactsEntity.getLocation().isEmpty()) currentPlayer.removeArtefact(artefactsEntity.getName().toLowerCase());
         else {
             String location = artefactsEntity.getLocation().toLowerCase();
             if(entities.get(location) instanceof LocationEntity locationEntity)
-                locationEntity.getArtefacts().remove(artefactsEntity.getName().toLowerCase());
+                locationEntity.removeArtefact(artefactsEntity.getName().toLowerCase());
         }
         //Add the item to storeroom
         if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
             locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
             artefactsEntity.setLocation("storeroom");
         }
-        
 
     }
 
