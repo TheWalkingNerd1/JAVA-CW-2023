@@ -54,8 +54,8 @@ public final class GameServer {
     * @param command The incoming command to be processed
     */
     public String handleCommand(String command) {
-        Controller controller = new Controller(command, entities, actions, players);
         try {
+            Controller controller = new Controller(command, entities, actions, players);
             return controller.result();
         } catch (StagExceptions e) {return e.getMessage();}
 

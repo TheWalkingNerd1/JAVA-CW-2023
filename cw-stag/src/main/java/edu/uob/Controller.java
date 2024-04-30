@@ -18,9 +18,10 @@ public class Controller {
     private final ArrayList<String> triggers = new ArrayList<>();
     private final Map<String, Player> players;
     private Player currentPlayer;
+    private String firstLocation;
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
-                       HashSet<GameAction>> actions, Map<String, Player> players) {
+                       HashSet<GameAction>> actions, Map<String, Player> players) throws StagExceptions {
         this.command = command;
         this.entities = entities;
         this.actions = actions;
@@ -33,6 +34,8 @@ public class Controller {
         constructActionKeywords();
         //SetKeyWords
         constructKeywords();
+        //Set the first Location
+        setFirstLocation();
         //Set the current player
         setCurrentPlayer();
         //deduct the command
@@ -62,6 +65,17 @@ public class Controller {
                 System.out.println(locationEntity.getCharacters().keySet());
             }
             return gameAction.getNarration();
+        }
+    }
+
+    private void setFirstLocation() {
+        for(GameEntity entity : entities.values()) {
+            if(entity instanceof LocationEntity locationEntity) {
+                if(locationEntity.isFirstLocation) {
+                    firstLocation = locationEntity.getName().toLowerCase();
+                    return;
+                }
+            }
         }
     }
 
@@ -103,6 +117,21 @@ public class Controller {
 
     private void reducePlayerHealth() {
         if(currentPlayer.health > 0) currentPlayer.health--;
+        if(currentPlayer.health == 0) resetPlayer();
+    }
+
+    private void resetPlayer() {
+        for(ArtefactsEntity artefactsEntity : currentPlayer.getArtefacts().values()) {
+            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
+                locationEntity.addArtefact(artefactsEntity.getName(), artefactsEntity);
+            }
+            artefactsEntity.setLocation("storeroom");
+        }
+        currentPlayer.getArtefacts().clear();
+        if(entities.get(firstLocation) instanceof LocationEntity locationEntity) locationEntity.addPlayers(currentPlayer.getName(), currentPlayer);
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) locationEntity.removePlayer(currentPlayer.getName());
+        currentPlayer.setLocation(firstLocation);
+        currentPlayer.health = 3;
     }
 
     private void produceArtefact(ArtefactsEntity artefactsEntity) {
@@ -449,11 +478,12 @@ public class Controller {
         return null;
     }
 
-    private void setCurrentPlayer() {
+    private void setCurrentPlayer() throws StagExceptions {
         //Get the player's name
         String name = null;
         String[] parts = command.split(":");
         if(parts.length > 1) name = parts[0];
+        checkName(name);
         if(!checkPlayerExistence(name)) {
             Player player = new Player(name);
             players.put(name, player);
@@ -461,6 +491,11 @@ public class Controller {
             //Set the player to firstLocation
             initialPlayerLocation(entities,currentPlayer);
         }
+    }
+
+    private void checkName(String name) throws StagExceptions {
+        String regex = "^[A-Za-z\\s'-]+$";
+        if(!name.matches(regex)) throw new StagExceptions("Please use a valid user name");
     }
 
     private void constructKeywords() {
