@@ -17,10 +17,6 @@ public class Controller {
     private final ArrayList<String> subjects = new ArrayList<>();
     private final ArrayList<String> triggers = new ArrayList<>();
     private final Map<String, Player> players;
-    private final ArrayList<ArtefactsEntity> artefactsToBeConsumed = new ArrayList<>();
-    private final ArrayList<FurnitureEntity> furnitureToBeConsumed = new ArrayList<>();
-    private final ArrayList<CharactersEntity> charactersToBeConsumed = new ArrayList<>();
-    private final ArrayList<LocationEntity> locationsToBeConsumed = new ArrayList<>();
     private Player currentPlayer;
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
@@ -132,10 +128,8 @@ public class Controller {
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
                 String location = furnitureEntity.getLocation().toLowerCase();
-                if(entities.get(location) instanceof LocationEntity locationEntity) {
-                    System.out.println("Enter here!");
+                if(entities.get(location) instanceof LocationEntity locationEntity) 
                     locationEntity.removeFurniture(furnitureEntity.getName().toLowerCase());
-                }
                 if(entities.get("storeroom") instanceof LocationEntity locationEntity)
                     locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
                 furnitureEntity.setLocation("storeroom");
@@ -148,6 +142,7 @@ public class Controller {
                     locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
                 charactersEntity.setLocation("storeroom");
             }
+            //Possible bug here
             if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
                 if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
                     location.getConnectTo().remove(string.toLowerCase());
@@ -175,20 +170,14 @@ public class Controller {
         for(String string : gameAction.getSubjects()) {
             if(!checkPlayerInventory(string) && !checkLocationSubjects(string))
                 throw new StagExceptions("There's no enough subjects for the action!");
-            if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
-                if(locationEntity.getName().equalsIgnoreCase(currentPlayer.getLocation())) return;
-                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
-                    if(location.getConnectTo().contains(string.toLowerCase())) return;
-                }
-                throw new StagExceptions("You don't have access to the provided location");
-            }
         }
     }
 
     private boolean checkLocationSubjects(String string) {
         if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
-            if (locationEntity.getArtefacts().containsKey(string.toLowerCase())) return true;
-            if (locationEntity.getCharacters().containsKey(string.toLowerCase())) return true;
+            if(locationEntity.getConnectTo().contains(string.toLowerCase())) return true;
+            if(locationEntity.getArtefacts().containsKey(string.toLowerCase())) return true;
+            if(locationEntity.getCharacters().containsKey(string.toLowerCase())) return true;
             return locationEntity.getFurniture().containsKey(string.toLowerCase());
         }
         return false;
