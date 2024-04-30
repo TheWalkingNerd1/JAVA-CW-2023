@@ -7,6 +7,7 @@ import java.util.Map;
 public class Player {
     final private String name;
     private String location;
+    public int health = 3;
     private final Map<String, ArtefactsEntity> artefacts = new HashMap<>();
 
     public Player(String name) {

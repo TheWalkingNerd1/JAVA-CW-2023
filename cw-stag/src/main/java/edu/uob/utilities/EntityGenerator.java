@@ -57,7 +57,7 @@ public class EntityGenerator {
         for(Edge path : paths) {
             String fromName = path.getSource().getNode().getId().getId().toLowerCase();
             String toName = path.getTarget().getNode().getId().getId().toLowerCase();
-            if(entities.get(fromName) instanceof LocationEntity locationEntity) locationEntity.addConnectTo(toName);
+            if(entities.get(fromName) instanceof LocationEntity locationEntity) locationEntity.addConnectTo(toName.toLowerCase());
             if(entities.get(toName) instanceof LocationEntity locationEntity) locationEntity.addConnectFrom(fromName);
         }
     }
