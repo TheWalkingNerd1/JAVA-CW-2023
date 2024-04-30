@@ -157,9 +157,6 @@ public class Controller {
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
                 String location = furnitureEntity.getLocation().toLowerCase();
-                if(entities.get(location) instanceof LocationEntity locationEntity) {
-                    locationEntity.removeFurniture(furnitureEntity.getName().toLowerCase());
-                }
                 if(entities.get(location) instanceof LocationEntity locationEntity) 
                     locationEntity.removeFurniture(furnitureEntity.getName().toLowerCase());
                 if(entities.get("storeroom") instanceof LocationEntity locationEntity)
