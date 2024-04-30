@@ -45,5 +45,9 @@ public class LocationEntity extends GameEntity {
 
     public void removeArtefact(String key) { artefacts.remove(key); }
 
+    public void removeFurniture(String key) { furniture.remove(key); }
+
+    public void removeCharacters(String key) { characters.remove(key); }
+
     public void removePlayer(String key) { players.remove(key); }
 }

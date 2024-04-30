@@ -60,48 +60,66 @@ public class Controller {
             checkSubject(gameAction);
             consumeSubjects(gameAction);
             produceSubjects(gameAction);
-            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {System.out.println(locationEntity.getArtefacts().keySet());}
+            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
+                System.out.println(locationEntity.getArtefacts().keySet());
+                System.out.println(locationEntity.getFurniture().keySet());
+                System.out.println(locationEntity.getCharacters().keySet());
+            }
             return gameAction.getNarration();
         }
     }
 
-    private void produceSubjects(GameAction gameAction) {
-        for(String string : gameAction.getConsumed()) {
+    private void produceSubjects(GameAction gameAction) throws StagExceptions {
+        for(String string : gameAction.getProduced()) {
             if(entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
                 if(artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
-                    throw new StagExceptions("An artefact to be produed is currently hold by another player");
+                    throw new StagExceptions("An artefact to be produced is currently hold by another player");
                 produceArtefact(artefactsEntity);
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
                 String location = furnitureEntity.getLocation().toLowerCase();
                 if(entities.get(location) instanceof LocationEntity locationEntity)
-                    locationEntity.getArtefacts().remove(furnitureEntity.getName().toLowerCase());
-                if(entities.get("storeroom") instanceof LocationEntity locationEntity)
+                    locationEntity.removeFurniture(furnitureEntity.getName().toLowerCase());
+                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
                     locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
-                furnitureEntity.setLocation("storeroom");
+                furnitureEntity.setLocation(currentPlayer.getLocation().toLowerCase());
             }
             if(entities.get(string.toLowerCase()) instanceof CharactersEntity charactersEntity) {
                 String location = charactersEntity.getLocation().toLowerCase();
                 if(entities.get(location) instanceof LocationEntity locationEntity)
-                    locationEntity.getArtefacts().remove(charactersEntity.getName().toLowerCase());
-                if(entities.get("storeroom") instanceof LocationEntity locationEntity)
+                    locationEntity.removeCharacters(charactersEntity.getName().toLowerCase());
+                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
                     locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
-                charactersEntity.setLocation("storeroom");
+                charactersEntity.setLocation(currentPlayer.getLocation().toLowerCase());
             }
+            if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
+                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
+                    location.getConnectTo().add(string.toLowerCase());
+                }
+            }
+            if(string.equalsIgnoreCase("health")) increasePlayerHealth();
         }
     }
 
+    private void increasePlayerHealth() {
+        if(currentPlayer.health < 3) currentPlayer.health++;
+    }
+
+    private void reducePlayerHealth() {
+        if(currentPlayer.health > 0) currentPlayer.health--;
+    }
+
     private void produceArtefact(ArtefactsEntity artefactsEntity) {
-        //if(artefactsEntity.getLocation().isEmpty()) currentPlayer.removeArtefact(artefactsEntity.getName().toLowerCase());
-        //else {
+        if(artefactsEntity.getLocation().isEmpty()) currentPlayer.removeArtefact(artefactsEntity.getName().toLowerCase());
+        else {
             String location = artefactsEntity.getLocation().toLowerCase();
             if(entities.get(location) instanceof LocationEntity locationEntity)
                 locationEntity.removeArtefact(artefactsEntity.getName().toLowerCase());
-        //}
-        //Add the item to the curreent Room 
-        if(entities.get(currentPlayer.getLocation.toLowerCase) instanceof LocationEntity locationEntity) {
+        }
+        //Add the item to the current Room
+        if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity locationEntity) {
             locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
-            artefactsEntity.setLocation(currentPlayer.getLocation.toLowerCase);
+            artefactsEntity.setLocation(currentPlayer.getLocation().toLowerCase());
         }
     }
 
@@ -114,8 +132,10 @@ public class Controller {
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
                 String location = furnitureEntity.getLocation().toLowerCase();
-                if(entities.get(location) instanceof LocationEntity locationEntity)
-                    locationEntity.getArtefacts().remove(furnitureEntity.getName().toLowerCase());
+                if(entities.get(location) instanceof LocationEntity locationEntity) {
+                    System.out.println("Enter here!");
+                    locationEntity.removeFurniture(furnitureEntity.getName().toLowerCase());
+                }
                 if(entities.get("storeroom") instanceof LocationEntity locationEntity)
                     locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
                 furnitureEntity.setLocation("storeroom");
@@ -123,11 +143,17 @@ public class Controller {
             if(entities.get(string.toLowerCase()) instanceof CharactersEntity charactersEntity) {
                 String location = charactersEntity.getLocation().toLowerCase();
                 if(entities.get(location) instanceof LocationEntity locationEntity)
-                    locationEntity.getArtefacts().remove(charactersEntity.getName().toLowerCase());
+                    locationEntity.removeCharacters(charactersEntity.getName().toLowerCase());
                 if(entities.get("storeroom") instanceof LocationEntity locationEntity)
                     locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
                 charactersEntity.setLocation("storeroom");
             }
+            if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
+                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
+                    location.getConnectTo().remove(string.toLowerCase());
+                }
+            }
+            if(string.equalsIgnoreCase("health")) reducePlayerHealth();
         }
     }
 
@@ -149,9 +175,13 @@ public class Controller {
         for(String string : gameAction.getSubjects()) {
             if(!checkPlayerInventory(string) && !checkLocationSubjects(string))
                 throw new StagExceptions("There's no enough subjects for the action!");
-            if(entities.get(string) instanceof LocationEntity locationEntity)
-                if(!locationEntity.getName().equalsIgnoreCase(currentPlayer.getLocation()))
-                    throw new StagExceptions("You are not in this location!");
+            if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
+                if(locationEntity.getName().equalsIgnoreCase(currentPlayer.getLocation())) return;
+                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
+                    if(location.getConnectTo().contains(string.toLowerCase())) return;
+                }
+                throw new StagExceptions("You don't have access to the provided location");
+            }
         }
     }
 
@@ -307,12 +337,12 @@ public class Controller {
         for(Player player : locationEntity.getPlayers().values()) {
             stringBuilder.append(player.getName()).append(" ");
         }
-        stringBuilder.append("\n");
+        stringBuilder.append("\n").append("Current player health : ").append(currentPlayer.health);
     }
 
     private void lookFurniture(StringBuilder stringBuilder, LocationEntity locationEntity) {
         if(!locationEntity.getFurniture().isEmpty()) {
-            stringBuilder.append("The room has following furniture: \n");
+            stringBuilder.append("The room has following furniture: \n").append(locationEntity.getFurniture().size());
             for(FurnitureEntity furnitureEntity : locationEntity.getFurniture().values()) {
                 stringBuilder.append(furnitureEntity.getName()).append(" : ").append(furnitureEntity.getDescription()).append("\n");
             }
