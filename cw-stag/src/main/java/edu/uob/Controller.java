@@ -199,13 +199,6 @@ public class Controller {
         for(String string : gameAction.getSubjects()) {
             if(!checkPlayerInventory(string) && !checkLocationSubjects(string))
                 throw new StagExceptions("There's no enough subjects for the action!");
-            if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
-                if(locationEntity.getName().equalsIgnoreCase(currentPlayer.getLocation())) return;
-                if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
-                    if(location.getConnectTo().contains(string.toLowerCase())) return;
-                }
-                throw new StagExceptions("You don't have access to the provided location");
-            }
         }
     }
 
