@@ -139,7 +139,7 @@ public class Controller {
     private void resetPlayer() {
         for(ArtefactsEntity artefactsEntity : currentPlayer.getArtefacts().values()) {
             if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
-                locationEntity.addArtefact(artefactsEntity.getName(), artefactsEntity);
+                locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
             }
             artefactsEntity.setLocation(currentPlayer.getLocation().toLowerCase());
         }
@@ -218,7 +218,9 @@ public class Controller {
     }
 
     private boolean checkLocationSubjects(String string) {
-        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
+        if(string.equalsIgnoreCase(currentPlayer.getLocation())) return true;
+        if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity)
+        {
             if(locationEntity.getConnectTo().contains(string.toLowerCase())) return true;
             if(locationEntity.getArtefacts().containsKey(string.toLowerCase())) return true;
             if(locationEntity.getCharacters().containsKey(string.toLowerCase())) return true;
