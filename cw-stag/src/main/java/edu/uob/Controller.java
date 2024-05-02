@@ -6,7 +6,7 @@ import edu.uob.utilities.StagExceptions;
 import java.util.*;
 
 public class Controller {
-    private final String[] builtInCommands = {"inventory", "inv", "get", "drop", "goto", "look"};
+    private final String[] builtInCommands = {"inventory", "inv", "get", "drop", "goto", "look", "health"};
     private final Map<String, GameEntity> entities;
     private final HashMap<String, HashSet<GameAction>> actions;
     private String command;
@@ -19,6 +19,7 @@ public class Controller {
     private final Map<String, Player> players;
     private Player currentPlayer;
     private String firstLocation;
+    private boolean isDead = false;
 
     public Controller(String command, Map<String, GameEntity> entities, HashMap<String,
                        HashSet<GameAction>> actions, Map<String, Player> players) throws StagExceptions {
@@ -57,14 +58,31 @@ public class Controller {
             List<GameAction> list = new ArrayList<>(gameActionSet);
             GameAction gameAction = list.get(0);
             checkSubject(gameAction);
-            consumeSubjects(gameAction);
+            checkConsumeAndProduceSubjects(gameAction);
             produceSubjects(gameAction);
+            consumeSubjects(gameAction);
             if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
                 System.out.println(locationEntity.getArtefacts().keySet());
                 System.out.println(locationEntity.getFurniture().keySet());
                 System.out.println(locationEntity.getCharacters().keySet());
             }
-            return gameAction.getNarration();
+            if(!isDead) return gameAction.getNarration();
+            else return gameAction.getNarration() + "you died and lost all of your items, you must return to the start of the game";
+        }
+    }
+
+    private void checkConsumeAndProduceSubjects(GameAction gameAction) throws StagExceptions {
+        for(String string : gameAction.getProduced()) {
+            if (entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
+                if (artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
+                    throw new StagExceptions("An artefact to be produced is currently hold by another player");
+            }
+        }
+        for(String string : gameAction.getConsumed()) {
+            if (entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
+                if (artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
+                    throw new StagExceptions("An artefact to be consumed is currently hold by another player");
+            }
         }
     }
 
@@ -79,11 +97,9 @@ public class Controller {
         }
     }
 
-    private void produceSubjects(GameAction gameAction) throws StagExceptions {
+    private void produceSubjects(GameAction gameAction) {
         for(String string : gameAction.getProduced()) {
             if(entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
-                if(artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
-                    throw new StagExceptions("An artefact to be produced is currently hold by another player");
                 produceArtefact(artefactsEntity);
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
@@ -104,7 +120,7 @@ public class Controller {
             }
             if(entities.get(string.toLowerCase()) instanceof LocationEntity locationEntity) {
                 if(entities.get(currentPlayer.getLocation().toLowerCase()) instanceof LocationEntity location) {
-                    location.getConnectTo().add(string.toLowerCase());
+                    if(!location.getConnectTo().contains(string.toLowerCase())) location.getConnectTo().add(string.toLowerCase());
                 }
             }
             if(string.equalsIgnoreCase("health")) increasePlayerHealth();
@@ -122,16 +138,17 @@ public class Controller {
 
     private void resetPlayer() {
         for(ArtefactsEntity artefactsEntity : currentPlayer.getArtefacts().values()) {
-            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
+            if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) {
                 locationEntity.addArtefact(artefactsEntity.getName(), artefactsEntity);
             }
-            artefactsEntity.setLocation("storeroom");
+            artefactsEntity.setLocation(currentPlayer.getLocation().toLowerCase());
         }
         currentPlayer.getArtefacts().clear();
         if(entities.get(firstLocation) instanceof LocationEntity locationEntity) locationEntity.addPlayers(currentPlayer.getName(), currentPlayer);
         if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity) locationEntity.removePlayer(currentPlayer.getName());
         currentPlayer.setLocation(firstLocation);
         currentPlayer.health = 3;
+        isDead = true;
     }
 
     private void produceArtefact(ArtefactsEntity artefactsEntity) {
@@ -148,11 +165,9 @@ public class Controller {
         }
     }
 
-    private void consumeSubjects(GameAction gameAction) throws StagExceptions {
+    private void consumeSubjects(GameAction gameAction) {
         for(String string : gameAction.getConsumed()) {
             if(entities.get(string.toLowerCase()) instanceof ArtefactsEntity artefactsEntity) {
-                if(artefactsEntity.getLocation().isEmpty() && !currentPlayer.getArtefacts().containsValue(artefactsEntity))
-                    throw new StagExceptions("An artefact to be consumed is currently hold by another player");
                 consumeArtefact(artefactsEntity);
             }
             if(entities.get(string.toLowerCase()) instanceof FurnitureEntity furnitureEntity) {
@@ -254,12 +269,18 @@ public class Controller {
     }
 
     private String handleBuiltInCommand() throws StagExceptions {
+        if(containsKeywords("health")) return handleHealthCommand();
         if(containsKeywords("look")) return handleLookCommand();
         if(containsKeywords("inv")) return handleInventoryCommand();
         if(containsKeywords("get")) return handleGetCommand();
         if(containsKeywords("drop")) return handleDropCommand();
         if(containsKeywords("goto")) return handleGotoCommand();
         return null;
+    }
+
+    private String handleHealthCommand() throws StagExceptions {
+        checkSingleBuiltinValidation();
+        return String.valueOf(currentPlayer.health);
     }
 
     private String handleGotoCommand() throws StagExceptions {
@@ -300,7 +321,7 @@ public class Controller {
         return "You have successfully got the " + artefact;
     }
 
-    private boolean playerHasArtefact(String artefact) throws StagExceptions {
+    private boolean playerHasArtefact(String artefact) {
         return currentPlayer.getArtefacts().containsKey(artefact.toLowerCase());
     }
 
@@ -339,7 +360,7 @@ public class Controller {
         return stringBuilder.toString();
     }
 
-    private void lookPlaceToGo(StringBuilder stringBuilder, LocationEntity locationEntity) throws StagExceptions {
+    private void lookPlaceToGo(StringBuilder stringBuilder, LocationEntity locationEntity) {
         if(!locationEntity.getConnectTo().isEmpty()) {
             stringBuilder.append("You can goto the following places: ");
             for(String string : locationEntity.getConnectTo()) {
@@ -480,9 +501,9 @@ public class Controller {
 
     private void setCurrentPlayer() throws StagExceptions {
         //Get the player's name
-        String name = null;
         String[] parts = command.split(":");
-        if(parts.length > 1) name = parts[0];
+        if(parts.length <= 1) throw new StagExceptions("Please provide a valid command");
+        String name = parts[0];
         checkName(name);
         if(!checkPlayerExistence(name)) {
             Player player = new Player(name);
