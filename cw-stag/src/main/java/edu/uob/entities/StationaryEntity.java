@@ -2,10 +2,10 @@ package edu.uob.entities;
 
 import edu.uob.*;
 
-public class FurnitureEntity extends GameEntity {
+public class StationaryEntity extends GameEntity {
     private String location;
 
-    public FurnitureEntity(String name, String description, String location) {
+    public StationaryEntity(String name, String description, String location) {
         super(name, description);
         this.location = location;
     }
