@@ -57,16 +57,16 @@ public class ActionGenerator {
 
     private void constructActionMap(HashMap<String, HashSet<GameAction>> actions, GameAction gameAction) {
         for(String trigger : triggers){
-            if(!actions.containsKey(trigger.toLowerCase())) {
+            if(!actions.containsKey(trigger)) {
                 HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
-                actions.put(trigger.toLowerCase(), gameActionSet);
+                actions.put(trigger, gameActionSet);
             }
-            actions.get(trigger.toLowerCase()).add(gameAction);
+            actions.get(trigger).add(gameAction);
         }
         for(String subject : subjects){
-            if(!actions.containsKey(subject.toLowerCase())) {
+            if(!actions.containsKey(subject)) {
                 HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
-                actions.put(subject.toLowerCase(), gameActionSet);
+                actions.put(subject, gameActionSet);
             }
             actions.get(subject).add(gameAction);
         }
@@ -86,23 +86,23 @@ public class ActionGenerator {
         Element triggerList = (Element) action.getElementsByTagName("triggers").item(0);
         NodeList keyPhrase = triggerList.getElementsByTagName("keyphrase");
         for (int i = 0; i < keyPhrase.getLength(); i++) {
-            if (keyPhrase.item(i) instanceof Element keyPhraseNode) triggers.add(keyPhraseNode.getTextContent());
+            if (keyPhrase.item(i) instanceof Element keyPhraseNode) triggers.add(keyPhraseNode.getTextContent().toLowerCase());
         }
         Element subjectsList = (Element) action.getElementsByTagName("subjects").item(0);
         NodeList subjectEntities = subjectsList.getElementsByTagName("entity");
         for (int i = 0; i < subjectEntities.getLength(); i++) {
-            if (subjectEntities.item(i) instanceof Element subject) subjects.add(subject.getTextContent());
+            if (subjectEntities.item(i) instanceof Element subject) subjects.add(subject.getTextContent().toLowerCase());
             //System.out.println(subjectEntities.item(i).getTextContent());
         }
         Element consumedList = (Element) action.getElementsByTagName("consumed").item(0);
         NodeList consumedEntities = consumedList.getElementsByTagName("entity");
         for (int i = 0; i < consumedEntities.getLength(); i++) {
-            if (consumedEntities.item(i) instanceof Element consumedNode) consumed.add(consumedNode.getTextContent());
+            if (consumedEntities.item(i) instanceof Element consumedNode) consumed.add(consumedNode.getTextContent().toLowerCase());
         }
         Element producedList = (Element) action.getElementsByTagName("produced").item(0);
         NodeList producedEntities = producedList.getElementsByTagName("entity");
         for (int i = 0; i < producedEntities.getLength(); i++) {
-            if (producedEntities.item(i) instanceof Element producedNode) produced.add(producedNode.getTextContent());
+            if (producedEntities.item(i) instanceof Element producedNode) produced.add(producedNode.getTextContent().toLowerCase());
         }
     }
 }

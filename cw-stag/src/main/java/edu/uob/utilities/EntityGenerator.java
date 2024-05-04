@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class EntityGenerator {
-    private Parser parser = new Parser();
+    private final Parser parser = new Parser();
 
     public EntityGenerator(File entitiesFile) {
         try {
@@ -36,15 +36,15 @@ public class EntityGenerator {
         ArrayList<Graph> locations = sections.get(0).getSubgraphs();
         for(Graph graph : locations) {
             Node locationDetails = graph.getNodes(false).get(0);
-            String locationName = locationDetails.getId().getId();
+            String locationName = locationDetails.getId().getId().toLowerCase();
             String description = locationDetails.getAttribute("description");
             LocationEntity entity = new LocationEntity(locationName, description);
-            entities.put(locationName.toLowerCase(), entity);
+            entities.put(locationName, entity);
             generateSubEntities(graph, entities);
         }
         //Set first location
-        String firstLocationName = locations.get(0).getNodes(false).get(0).getId().getId();
-        if(entities.get(firstLocationName.toLowerCase()) instanceof LocationEntity locationEntity) locationEntity.setFirstLocation();
+        String firstLocationName = locations.get(0).getNodes(false).get(0).getId().getId().toLowerCase();
+        if(entities.get(firstLocationName) instanceof LocationEntity locationEntity) locationEntity.setFirstLocation();
         //Locate entities
         locateEntities(entities);
     }
@@ -57,63 +57,49 @@ public class EntityGenerator {
         for(Edge path : paths) {
             String fromName = path.getSource().getNode().getId().getId().toLowerCase();
             String toName = path.getTarget().getNode().getId().getId().toLowerCase();
-            if(entities.get(fromName) instanceof LocationEntity locationEntity) locationEntity.addConnectTo(toName.toLowerCase());
-            if(entities.get(toName) instanceof LocationEntity locationEntity) locationEntity.addConnectFrom(fromName);
+            if(entities.get(fromName) instanceof LocationEntity locationEntity) locationEntity.addConnectTo(toName);
         }
     }
 
     private void locateEntities(Map<String, GameEntity> entities) {
         for(GameEntity gameEntity : entities.values()) {
             if(gameEntity instanceof ArtefactsEntity artefactsEntity) {
-                if(entities.get(artefactsEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addArtefact(artefactsEntity.getName().toLowerCase(), artefactsEntity);
+                if(entities.get(artefactsEntity.getLocation()) instanceof LocationEntity locationEntity)
+                    locationEntity.addArtefact(artefactsEntity.getName(), artefactsEntity);
             }
-            if(gameEntity instanceof FurnitureEntity furnitureEntity) {
-                if(entities.get(furnitureEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addFurniture(furnitureEntity.getName().toLowerCase(), furnitureEntity);
-            }
-            if(gameEntity instanceof CharactersEntity charactersEntity) {
-                if(entities.get(charactersEntity.getLocation().toLowerCase()) instanceof LocationEntity locationEntity)
-                    locationEntity.addCharacter(charactersEntity.getName().toLowerCase(), charactersEntity);
+            if(gameEntity instanceof StationaryEntity stationaryEntity) {
+                if(entities.get(stationaryEntity.getLocation()) instanceof LocationEntity locationEntity)
+                    locationEntity.addProperty(stationaryEntity.getName(), stationaryEntity);
             }
         }
     }
 
     private void generateSubEntities(Graph graph, Map<String, GameEntity> entities) {
         ArrayList<Graph> subGraphs = graph.getSubgraphs();
-        String locationName = graph.getNodes(false).get(0).getId().getId();
+        String locationName = graph.getNodes(false).get(0).getId().getId().toLowerCase();
         for(Graph subGraph : subGraphs) {
             String entityType = subGraph.getId().getId();
             if(entityType.equals("artefacts")) generateArtefacts(subGraph.getNodes(false), entities, locationName);
-            if(entityType.equals("furniture")) generateFurniture(subGraph.getNodes(false), entities,locationName);
-            if(entityType.equals("characters")) generateCharacters(subGraph.getNodes(false), entities,locationName);
+            if(entityType.equals("furniture")) generateFurnitureAndCharacters(subGraph.getNodes(false), entities,locationName);
+            if(entityType.equals("characters")) generateFurnitureAndCharacters(subGraph.getNodes(false), entities,locationName);
         }
     }
 
     private void generateArtefacts(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
         for(Node node : nodes) {
-            String artefactsName = node.getId().getId();
+            String artefactsName = node.getId().getId().toLowerCase();
             String description = node.getAttribute("description");
             ArtefactsEntity entity = new ArtefactsEntity(artefactsName, description, locationName);
-            entities.put(artefactsName.toLowerCase(), entity);
+            entities.put(artefactsName, entity);
         }
     }
 
-    private void generateFurniture(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
+    private void generateFurnitureAndCharacters(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
         for(Node node : nodes) {
-            String furnitureName = node.getId().getId();
+            String entityName = node.getId().getId().toLowerCase();
             String description = node.getAttribute("description");
-            FurnitureEntity entity = new FurnitureEntity(furnitureName, description, locationName);
-            entities.put(furnitureName.toLowerCase(), entity);
-        }
-    }
-
-    private void generateCharacters(ArrayList<Node> nodes, Map<String, GameEntity> entities, String locationName) {
-        for(Node node : nodes) {
-            String characterName = node.getId().getId();
-            String description = node.getAttribute("description");
-            CharactersEntity entity = new CharactersEntity(characterName, description, locationName);
-            entities.put(characterName.toLowerCase(), entity);
+            StationaryEntity entity = new StationaryEntity(entityName, description, locationName);
+            entities.put(entityName, entity);
         }
     }
 }
