@@ -276,7 +276,7 @@ public class Controller {
 
     private String handleHealthCommand() throws StagExceptions {
         checkSingleBuiltinValidation();
-        return String.valueOf(currentPlayer.health);
+        return "Health : " + String.valueOf(currentPlayer.health);
     }
 
     private String handleGotoCommand() throws StagExceptions {
@@ -371,7 +371,6 @@ public class Controller {
         for(Player player : locationEntity.getPlayers().values()) {
             stringBuilder.append(player.getName()).append(" ");
         }
-        stringBuilder.append("\n").append("Current player health : ").append(currentPlayer.health);
     }
 
     private void lookEntities(StringBuilder stringBuilder, LocationEntity locationEntity) {
