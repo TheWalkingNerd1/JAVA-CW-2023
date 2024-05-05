@@ -216,10 +216,36 @@ public class Controller {
     private void checkActionCommand() throws StagExceptions {
         int triggerNum = 0, subjectNum = 0;
         for(String string : triggers) {
-            if (containsKeywords(string)) triggerNum++;
+            if (containsKeywords(string)) {
+                int lastIndex = 0;
+                int count = 0;
+
+                while (lastIndex != -1) {
+                    lastIndex = command.indexOf(string, lastIndex);
+                    if (lastIndex != -1) {
+                        count++;
+                        lastIndex += string.length();
+                    }
+                }
+                if(count > 1) throw new StagExceptions("This is a invalid command");
+                triggerNum++;
+            }
         }
         for(String string : subjects) {
-            if (containsKeywords(string)) subjectNum++;
+            if (containsKeywords(string)) {
+                int lastIndex = 0;
+                int count = 0;
+
+                while (lastIndex != -1) {
+                    lastIndex = command.indexOf(string, lastIndex);
+                    if (lastIndex != -1) {
+                        count++;
+                        lastIndex += string.length();
+                    }
+                }
+                if(count > 1) throw new StagExceptions("This is a invalid command");
+                subjectNum++;
+            }
         }
         if(triggerNum < 1 || subjectNum < 1) throw new StagExceptions("Please specify at least one trigger and one subject");
     }
@@ -232,8 +258,8 @@ public class Controller {
     }
 
     private boolean containsKeywords(String string) {
-        if (command.equals(string)) return true;
-        if (command.startsWith(string)) return true;
+        if (command.equalsIgnoreCase(string)) return true;
+        if (command.startsWith(string + " ")) return true;
         if (command.endsWith(" " + string)) return true;
         return command.contains(" " + string + " ");
     }
