@@ -42,6 +42,7 @@ public class Controller {
         if (command == null || command.trim().isEmpty()) return ""; 
         //extract keyWords
         dismantleCommand();
+        System.out.println(keywordsFromCommand);
         String builtInCommandResult = handleBuiltInCommand();
         if(builtInCommandResult != null) return builtInCommandResult;
         checkActionCommand();
@@ -216,36 +217,10 @@ public class Controller {
     private void checkActionCommand() throws StagExceptions {
         int triggerNum = 0, subjectNum = 0;
         for(String string : triggers) {
-            if (containsKeywords(string)) {
-                int lastIndex = 0;
-                int count = 0;
-
-                while (lastIndex != -1) {
-                    lastIndex = command.indexOf(string, lastIndex);
-                    if (lastIndex != -1) {
-                        count++;
-                        lastIndex += string.length();
-                    }
-                }
-                if(count > 1) throw new StagExceptions("This is a invalid command");
-                triggerNum++;
-            }
+            if (containsKeywords(string)) triggerNum++;
         }
         for(String string : subjects) {
-            if (containsKeywords(string)) {
-                int lastIndex = 0;
-                int count = 0;
-
-                while (lastIndex != -1) {
-                    lastIndex = command.indexOf(string, lastIndex);
-                    if (lastIndex != -1) {
-                        count++;
-                        lastIndex += string.length();
-                    }
-                }
-                if(count > 1) throw new StagExceptions("This is a invalid command");
-                subjectNum++;
-            }
+            if (containsKeywords(string)) subjectNum++;
         }
         if(triggerNum < 1 || subjectNum < 1) throw new StagExceptions("Please specify at least one trigger and one subject");
     }
@@ -436,7 +411,24 @@ public class Controller {
 
     private void dismantleCommand() {
         for(String keyword : keywords) {
-            if(containsKeywords(keyword)) keywordsFromCommand.add(keyword);
+            if(containsKeywords(keyword)) {
+                selectKeyword(keyword);
+            }
+        }
+    }
+
+    private void selectKeyword(String keyword) {
+        HashSet<GameAction> actionToSelect = actions.get(keyword);
+        boolean isFound = false;
+        for(GameAction gameAction : actionToSelect) {
+            for(String string : gameAction.getSubjects()) {
+                if(containsKeywords(string)) {
+                    keywordsFromCommand.add(keyword);
+                    isFound = true;
+                    break;
+                }
+            }
+            if(isFound) break;
         }
     }
 
