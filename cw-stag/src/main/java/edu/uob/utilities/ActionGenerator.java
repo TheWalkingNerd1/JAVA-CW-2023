@@ -3,8 +3,6 @@ package edu.uob.utilities;
 import edu.uob.GameAction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.ElementTraversal;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -43,7 +41,7 @@ public class ActionGenerator {
     public void generateActions(HashMap<String, HashSet<GameAction>> actions) {
         for(int i = 0; i < actionsList.getLength(); i++) {
             if (i % 2 == 1) {
-                dismantleActions((Element)actionsList.item(i), actions);
+                dismantleActions((Element)actionsList.item(i));
                 GameAction gameAction =new GameAction();
                 gameAction.setTriggers(triggers);
                 gameAction.setSubjects(subjects);
@@ -58,21 +56,21 @@ public class ActionGenerator {
     private void constructActionMap(HashMap<String, HashSet<GameAction>> actions, GameAction gameAction) {
         for(String trigger : triggers){
             if(!actions.containsKey(trigger)) {
-                HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
+                HashSet<GameAction> gameActionSet = new HashSet<>();
                 actions.put(trigger, gameActionSet);
             }
             actions.get(trigger).add(gameAction);
         }
         for(String subject : subjects){
             if(!actions.containsKey(subject)) {
-                HashSet<GameAction> gameActionSet = new HashSet<GameAction>();
+                HashSet<GameAction> gameActionSet = new HashSet<>();
                 actions.put(subject, gameActionSet);
             }
             actions.get(subject).add(gameAction);
         }
     }
 
-    private void dismantleActions(Element action, HashMap<String, HashSet<GameAction>> actions) {
+    private void dismantleActions(Element action) {
         narration = action.getElementsByTagName("narration").item(0).getTextContent();
         constructArrayLists(action);
     }
@@ -92,7 +90,6 @@ public class ActionGenerator {
         NodeList subjectEntities = subjectsList.getElementsByTagName("entity");
         for (int i = 0; i < subjectEntities.getLength(); i++) {
             if (subjectEntities.item(i) instanceof Element subject) subjects.add(subject.getTextContent().toLowerCase());
-            //System.out.println(subjectEntities.item(i).getTextContent());
         }
         Element consumedList = (Element) action.getElementsByTagName("consumed").item(0);
         NodeList consumedEntities = consumedList.getElementsByTagName("entity");

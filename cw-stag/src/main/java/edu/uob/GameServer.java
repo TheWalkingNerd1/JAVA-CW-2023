@@ -1,7 +1,5 @@
 package edu.uob;
 
-import edu.uob.entities.ArtefactsEntity;
-import edu.uob.entities.LocationEntity;
 import edu.uob.entities.Player;
 import edu.uob.utilities.*;
 
@@ -9,7 +7,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,11 +37,6 @@ public final class GameServer {
         entityGenerator.generatePath(entities);
         ActionGenerator actionGenerator = new ActionGenerator(actionsFile);
         actionGenerator.generateActions(actions);
-        /*for (Map.Entry<String, HashSet<GameAction>> entry : actions.entrySet()) {
-            for(GameAction gameAction : entry.getValue()) {
-                System.out.println(gameAction.getNarration());
-            }
-        }*/
     }
 
     /**

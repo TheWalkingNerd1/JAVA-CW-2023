@@ -42,7 +42,6 @@ public class Controller {
         if (command == null || command.trim().isEmpty()) return ""; 
         //extract keyWords
         dismantleCommand();
-        System.out.println(keywordsFromCommand);
         String builtInCommandResult = handleBuiltInCommand();
         if(builtInCommandResult != null) return builtInCommandResult;
         checkActionCommand();
@@ -56,10 +55,6 @@ public class Controller {
             checkConsumeAndProduceSubjects(gameAction);
             produceSubjects(gameAction);
             consumeSubjects(gameAction);
-            if(entities.get("storeroom") instanceof LocationEntity locationEntity) {
-                System.out.println(locationEntity.getArtefacts().keySet());
-                System.out.println(locationEntity.getProperties().keySet());
-            }
             if(!isDead) return gameAction.getNarration();
             else return gameAction.getNarration() + "you died and lost all of your items, you must return to the start of the game";
         }
@@ -243,6 +238,7 @@ public class Controller {
         if(containsKeywords("health")) return handleHealthCommand();
         if(containsKeywords("look")) return handleLookCommand();
         if(containsKeywords("inv")) return handleInventoryCommand();
+        if(containsKeywords("inventory")) return handleInventoryCommand();
         if(containsKeywords("get")) return handleGetCommand();
         if(containsKeywords("drop")) return handleDropCommand();
         if(containsKeywords("goto")) return handleGotoCommand();
@@ -251,7 +247,7 @@ public class Controller {
 
     private String handleHealthCommand() throws StagExceptions {
         checkSingleBuiltinValidation();
-        return "Health : " + String.valueOf(currentPlayer.health);
+        return "Health : " + currentPlayer.health;
     }
 
     private String handleGotoCommand() throws StagExceptions {
