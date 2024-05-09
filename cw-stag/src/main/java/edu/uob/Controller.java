@@ -14,6 +14,7 @@ public class Controller {
     private final ArrayList<String> keywordsFromCommand = new ArrayList<>();
     private final ArrayList<String> subjects = new ArrayList<>();
     private final ArrayList<String> triggers = new ArrayList<>();
+    private final ArrayList<String> locationFromKeyword = new ArrayList<>();
     private final Map<String, Player> players;
     private Player currentPlayer;
     private String firstLocation;
@@ -198,7 +199,6 @@ public class Controller {
         if(string.equalsIgnoreCase(currentPlayer.getLocation())) return true;
         if(entities.get(currentPlayer.getLocation()) instanceof LocationEntity locationEntity)
         {
-            if(locationEntity.getConnectTo().contains(string)) return true;
             if(locationEntity.getArtefacts().containsKey(string)) return true;
             return locationEntity.getProperties().containsKey(string);
         }
@@ -210,6 +210,9 @@ public class Controller {
     }
 
     private void checkActionCommand() throws StagExceptions {
+        for(String string : locationFromKeyword) {
+            if(containsKeywords(string)) throw new StagExceptions("Extraneous Entities");
+        }
         int triggerNum = 0, subjectNum = 0;
         for(String string : triggers) {
             if (containsKeywords(string)) triggerNum++;
@@ -397,7 +400,7 @@ public class Controller {
         if(builtInCommandNum > 1) throw new StagExceptions("Please do one action for each command");
     }
 
-    private HashSet<GameAction> fetchAction() {
+    private HashSet<GameAction> fetchAction() throws StagExceptions {
         HashSet<GameAction> initialAction = new HashSet<>(actions.get(keywordsFromCommand.get(0)));
         for(String keyword : keywordsFromCommand) {
             initialAction.retainAll(actions.get(keyword));
@@ -405,7 +408,7 @@ public class Controller {
         return initialAction;
     }
 
-    private void dismantleCommand() {
+    private void dismantleCommand() throws StagExceptions{
         for(String keyword : keywords) {
             if(containsKeywords(keyword)) {
                 selectKeyword(keyword);
@@ -472,6 +475,9 @@ public class Controller {
 
     private void constructKeywords() {
         keywords.addAll(actions.keySet());
+        for(String string : entities.keySet()) {
+            if(!keywords.contains(string)) locationFromKeyword.add(string);
+        }
     }
 
     private boolean checkPlayerExistence(String name) {
